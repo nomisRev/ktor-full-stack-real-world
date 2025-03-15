@@ -48,3 +48,9 @@ Tech Stack: Ktor, Exposed, BouncyCastle Argon2
    * @property createdAt The timestamp when the embedding was created
   */
   ```
+- Do not use Exposed DAO, only use the Exposed (Core) DSL
+- Do not use `object XXXFactory`, use proper class and passing of arguments
+- Make sure to close all Closeable, and AutoCloseable
+- Make sure to close Exposed Database using TransactionManager.unregisterAndClose(database)
+- Use enviroment.on(ApplicationStopped) { } to close resources, and dependencies
+- Avoid using exceptions for control-flow!!
