@@ -11,7 +11,6 @@ import io.ktor.server.resources.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import org.jetbrains.realworld.error.configureErrorHandling
 
 fun main(args: Array<String>) =
     io.ktor.server.netty.EngineMain.main(args)
@@ -24,7 +23,6 @@ fun Application.module() {
     install(Resources)
     installMetrics()
 
-    configureErrorHandling()
     configureValidation()
 
     configureAuthentication(JwtConfig.load(environment))

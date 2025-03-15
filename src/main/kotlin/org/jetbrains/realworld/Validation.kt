@@ -7,9 +7,6 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import org.jetbrains.realworld.error.ErrorResponse
 
-/**
- * Configures request validation for the application.
- */
 fun Application.configureValidation() {
     install(StatusPages) {
         exception<RequestValidationException> { call, cause ->
