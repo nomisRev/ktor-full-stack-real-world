@@ -1,0 +1,104 @@
+package org.jetbrains.realworld.user
+
+import io.ktor.client.call.body
+import io.ktor.client.request.*
+import io.ktor.http.*
+import kotlinx.coroutines.delay
+import org.jetbrains.realworld.withApp
+import kotlin.test.*
+
+class UserRoutesTest {
+
+    @Test
+    fun testUserRegistration() = withApp {
+        val user = newTestUser()
+        val response = post("/users") {
+            contentType(ContentType.Application.Json)
+            setBody(NewUserRequest(user))
+        }
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        val registered = response.body<UserResponse>().user
+        assertEquals(user.username, registered.username)
+        assertEquals(user.email, registered.email)
+        assertNotNull(registered.token)
+    }
+
+    @Test
+    fun testUserLogin() = withApp {
+        val newUser = newTestUser()
+        val user = createUser(newUser)
+
+        val response = post("/users/login") {
+            contentType(ContentType.Application.Json)
+            setBody(UserLoginRequest(UserLogin(user.email, newUser.password)))
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val login = response.body<UserResponse>().user
+        assertNotNull(user)
+        assertEquals(user.username, login.username)
+        assertEquals(user.email, login.email)
+    }
+
+    @Test
+    fun testGetCurrentUser() = withApp {
+        val user = createUser(newTestUser())
+
+        val response = get("/user") {
+            contentType(ContentType.Application.Json)
+            bearerAuth(user.token!!)
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val currentUser = response.body<UserResponse>().user
+        assertEquals(user.username, currentUser.username)
+        assertEquals(user.email, currentUser.email)
+        assertEquals(user.token, currentUser.token)
+        assertEquals(user.bio, currentUser.bio)
+        assertEquals(user.image, currentUser.image)
+    }
+
+    @Test
+    fun testUpdateUser() = withApp {
+        val user = createUser(newTestUser())
+        val update = UserUpdate(
+            username = "updateduser",
+            bio = "This is my updated bio",
+            email = "updated@example.com"
+        )
+        val response = put("/user") {
+            contentType(ContentType.Application.Json)
+            bearerAuth(user.token!!)
+            setBody(UserUpdateRequest(update))
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val updated = response.body<UserResponse>().user
+        assertEquals(updated.username, update.username)
+        assertEquals(updated.email, update.email)
+        assertEquals(updated.bio, update.bio)
+    }
+
+    @Test
+    fun testInvalidRegistration() = withApp {
+        val invalidUser = NewUser(username = "", email = "invalid-email", password = "short")
+        val registerResponse = post("/users") {
+            contentType(ContentType.Application.Json)
+            setBody(NewUserRequest(invalidUser))
+        }
+        assertEquals(HttpStatusCode.BadRequest, registerResponse.status)
+    }
+
+    @Test
+    fun testDuplicateRegistration() = withApp {
+        val newUser = newTestUser()
+        createUser(newUser)
+
+        val duplicateResponse = post("/users") {
+            contentType(ContentType.Application.Json)
+            setBody(NewUserRequest(newUser))
+        }
+        assertEquals(HttpStatusCode.UnprocessableEntity, duplicateResponse.status)
+    }
+}

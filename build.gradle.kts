@@ -20,26 +20,21 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
     implementation(libs.ktor.kotlinx.json)
     implementation(libs.ktor.server.content.negotiation)
 
     // Database
     implementation(libs.postgresql)
-    implementation(libs.h2)
-    implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.dao)
-    implementation(libs.exposed.java.time)
+    implementation(libs.exposed.kotlin.time)
     implementation(libs.hikaricp)
-    implementation(libs.flyway.core)
-    implementation(libs.flyway.database.postgresql)
+    implementation(libs.flyway)
 
     // Metrics and Monitoring
     implementation(libs.ktor.server.metrics.micrometer)
     implementation(libs.micrometer.registry.prometheus)
 
-    // Ktor Features
     implementation(libs.ktor.server.default.headers)
     implementation(libs.ktor.server.auto.head.response)
     implementation(libs.ktor.server.resources)
@@ -47,9 +42,8 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.call.logging)
 
-    // Authentication
-    implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.bouncycastle)
 
     // Server and Logging
     implementation(libs.ktor.server.netty)

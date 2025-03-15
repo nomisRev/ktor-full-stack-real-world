@@ -8,6 +8,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.respond
 import org.jetbrains.realworld.error.ErrorResponse
+import org.jetbrains.realworld.user.User
+import org.jetbrains.realworld.user.UserService
 import java.util.*
 
 data class JwtConfig(
@@ -28,15 +30,9 @@ data class JwtConfig(
     }
 }
 
-fun generateToken(userId: Int, config: JwtConfig): String = JWT.create()
-    .withSubject("Authentication")
-    .withIssuer(config.issuer)
-    .withAudience(config.audience)
-    .withClaim("userId", userId)
-    .withExpiresAt(Date(System.currentTimeMillis() + config.expirationMillis))
-    .sign(Algorithm.HMAC256(config.secret))
+data class UserJWT(val userId: Long, val user: User)
 
-fun Application.configureAuthentication(config: JwtConfig): Unit =
+fun Application.configureAuthentication(config: JwtConfig, users: UserService): Unit =
     authentication {
         jwt {
             realm = config.realm
@@ -48,14 +44,29 @@ fun Application.configureAuthentication(config: JwtConfig): Unit =
                     .build()
             )
             validate { credential ->
-                if (credential.payload.getClaim("userId").asInt() != 0) JWTPrincipal(credential.payload)
-                else null
+                val userId = credential.getClaim("user_id", Long::class)
+                val now = Date()
+                when {
+                    userId == null ->
+                        respond(HttpStatusCode.Unauthorized, "Invalid token")
+
+                    credential.expiresAt?.before(now) == true ->
+                        respond(HttpStatusCode.Unauthorized, "Token has expired")
+
+                    else -> when (val user = users.getUserOrNull(userId)) {
+                        null -> respond(HttpStatusCode.Unauthorized)
+                        else -> UserJWT(userId, user)
+                    }
+                }
             }
             challenge { _, _ ->
-                call.respond(
-                    HttpStatusCode.Unauthorized,
-                    ErrorResponse.fromMessage("Token is not valid or has expired")
-                )
+                challenge { defaultScheme, realm ->
+                    val message = when {
+                        call.request.headers["Authorization"].isNullOrBlank() -> "Missing or empty Authorization header"
+                        else -> "Token is not valid or has expired"
+                    }
+                    call.respond(HttpStatusCode.Unauthorized, message)
+                }
             }
         }
     }

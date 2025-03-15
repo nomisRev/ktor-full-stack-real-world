@@ -11,6 +11,9 @@ import io.ktor.server.resources.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import org.jetbrains.realworld.user.Argon2Hasher
+import org.jetbrains.realworld.user.UserService
+import org.jetbrains.realworld.user.userRoutes
 
 fun main(args: Array<String>) =
     io.ktor.server.netty.EngineMain.main(args)
@@ -23,12 +26,14 @@ fun Application.module() {
     install(Resources)
     installMetrics()
 
+    val jwtConfig = JwtConfig.load(environment)
+    val userService = UserService(jwtConfig, database, Argon2Hasher())
+
+    configureAuthentication(jwtConfig, userService)
     configureValidation()
 
-    configureAuthentication(JwtConfig.load(environment))
-
     routing {
-
+        userRoutes(userService)
     }
 }
 

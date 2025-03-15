@@ -37,8 +37,8 @@ data class DatabaseConfig(
                 cachePrepStmts = property("database.cachePrepStmts").getString().toBoolean(),
                 prepStmtCacheSize = property("database.prepStmtCacheSize").getString().toInt(),
                 prepStmtCacheSqlLimit = property("database.prepStmtCacheSqlLimit").getString().toInt(),
-                locations = property("database.migration.locations").getString(),
-                baselineOnMigrate = property("database.migration.baselineOnMigrate").getString().toBoolean(),
+                locations = property("database.migrations.locations").getString(),
+                baselineOnMigrate = property("database.migrations.baselineOnMigrate").getString().toBoolean(),
             )
         }
     }
