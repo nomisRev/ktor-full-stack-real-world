@@ -6,6 +6,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationEnvironment
 import io.ktor.server.application.ApplicationStopped
 import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.output.MigrateResult
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import kotlin.apply
@@ -45,7 +46,20 @@ data class DatabaseConfig(
 }
 
 fun Application.setupDatabase(config: DatabaseConfig): Database {
-    val dataSource = HikariDataSource(HikariConfig().apply {
+    val dataSource = dataSource(config)
+    migrate(dataSource, config)
+    val database = Database.connect(dataSource)
+
+    monitor.subscribe(ApplicationStopped) {
+        TransactionManager.closeAndUnregister(database)
+        dataSource.close()
+    }
+
+    return database
+}
+
+fun dataSource(config: DatabaseConfig): HikariDataSource =
+    HikariDataSource(HikariConfig().apply {
         jdbcUrl = "jdbc:postgresql://${config.host}:${config.port}/${config.name}"
         username = config.username
         password = config.password
@@ -56,19 +70,11 @@ fun Application.setupDatabase(config: DatabaseConfig): Database {
         addDataSourceProperty("prepStmtCacheSqlLimit", config.prepStmtCacheSqlLimit.toString())
     })
 
+
+fun migrate(dataSource: HikariDataSource, config: DatabaseConfig): MigrateResult =
     Flyway.configure()
         .dataSource(dataSource)
         .locations(config.locations)
         .baselineOnMigrate(config.baselineOnMigrate)
         .load()
         .migrate()
-
-    val database = Database.connect(dataSource)
-
-    monitor.subscribe(ApplicationStopped) {
-        TransactionManager.closeAndUnregister(database)
-        dataSource.close()
-    }
-
-    return database
-}

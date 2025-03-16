@@ -2,7 +2,6 @@ package org.jetbrains.realworld.user
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -14,7 +13,6 @@ import io.ktor.server.routing.route
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.realworld.UserJWT
 import org.jetbrains.realworld.error.ErrorResponse
-import org.postgresql.util.PSQLException
 import org.postgresql.util.PSQLState
 
 fun Route.userRoutes(userService: UserService) {
@@ -27,7 +25,7 @@ fun Route.userRoutes(userService: UserService) {
             } catch (e: ExposedSQLException) {
                 if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) call.respond(
                     HttpStatusCode.UnprocessableEntity,
-                    ErrorResponse.fromFieldError("email", "is already registered")
+                    ErrorResponse("email", "is already registered")
                 )
                 else throw e
             }
@@ -40,7 +38,7 @@ fun Route.userRoutes(userService: UserService) {
                 if (user != null) call.respond(HttpStatusCode.OK, UserResponse(user))
                 else call.respond(
                     HttpStatusCode.UnprocessableEntity,
-                    ErrorResponse.fromFieldError("email or password", "is invalid")
+                    ErrorResponse("email or password", "is invalid")
                 )
             }
         }

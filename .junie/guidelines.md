@@ -54,3 +54,4 @@ Tech Stack: Ktor, Exposed, BouncyCastle Argon2
 - Make sure to close Exposed Database using TransactionManager.unregisterAndClose(database)
 - Use enviroment.on(ApplicationStopped) { } to close resources, and dependencies
 - Avoid using exceptions for control-flow!!
+- Do not rely on static test data, but rely on unique test data so test cannot conflict

@@ -10,6 +10,7 @@ import io.ktor.server.response.respond
 import org.jetbrains.realworld.error.ErrorResponse
 import org.jetbrains.realworld.user.User
 import org.jetbrains.realworld.user.UserService
+import org.slf4j.LoggerFactory
 import java.util.*
 
 data class JwtConfig(
@@ -44,28 +45,16 @@ fun Application.configureAuthentication(config: JwtConfig, users: UserService): 
                     .build()
             )
             validate { credential ->
-                val userId = credential.getClaim("user_id", Long::class)
                 val now = Date()
+                val expired = credential.expiresAt?.before(now) == true
+                val userId = credential.getClaim("user_id", Long::class)
                 when {
-                    userId == null ->
-                        respond(HttpStatusCode.Unauthorized, "Invalid token")
-
-                    credential.expiresAt?.before(now) == true ->
-                        respond(HttpStatusCode.Unauthorized, "Token has expired")
-
+                    userId == null -> respond(HttpStatusCode.Unauthorized, "Invalid token")
+                    expired -> respond(HttpStatusCode.Unauthorized, "Token has expired")
                     else -> when (val user = users.getUserOrNull(userId)) {
-                        null -> respond(HttpStatusCode.Unauthorized)
+                        null -> respond(HttpStatusCode.Unauthorized, "User doesn't exist")
                         else -> UserJWT(userId, user)
                     }
-                }
-            }
-            challenge { _, _ ->
-                challenge { defaultScheme, realm ->
-                    val message = when {
-                        call.request.headers["Authorization"].isNullOrBlank() -> "Missing or empty Authorization header"
-                        else -> "Token is not valid or has expired"
-                    }
-                    call.respond(HttpStatusCode.Unauthorized, message)
                 }
             }
         }

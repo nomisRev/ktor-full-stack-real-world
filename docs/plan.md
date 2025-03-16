@@ -35,27 +35,27 @@ This document outlines the plan for implementing the RealWorld Conduit API using
 
 ## Sprint 2: User Management and Authentication
 
-- [ ] **Issue 2.1: User Data Model**
+- [x] **Issue 2.1: User Data Model**
   - Create User table in the database
   - Implement User data classes
   - Set up password hashing with Argon2
 
-- [ ] **Issue 2.2: User Registration**
+- [x] **Issue 2.2: User Registration**
   - Implement `/users` POST endpoint
   - Add validation for user registration
   - Handle duplicate email/username errors
 
-- [ ] **Issue 2.3: User Login**
+- [x] **Issue 2.3: User Login**
   - Implement `/users/login` POST endpoint
   - Add validation for login credentials
   - Generate and return JWT token
 
-- [ ] **Issue 2.4: Current User Retrieval**
+- [x] **Issue 2.4: Current User Retrieval**
   - Implement `/user` GET endpoint
   - Add authentication middleware
   - Return current user information
 
-- [ ] **Issue 2.5: User Update**
+- [x] **Issue 2.5: User Update**
   - Implement `/user` PUT endpoint
   - Add validation for user updates
   - Handle email/username uniqueness

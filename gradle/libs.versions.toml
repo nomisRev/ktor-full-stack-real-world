@@ -40,6 +40,7 @@ bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "boun
 
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-resources = { module = "io.ktor:ktor-client-resources", version.ref = "ktor" }
 
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -58,7 +59,8 @@ testing = [
 ktor-client = [
     "ktor-client-content-negotiation",
     "ktor-client-cio",
-    "ktor-kotlinx-json"
+    "ktor-kotlinx-json",
+    "ktor-client-resources"
 ]
 
 [plugins]
