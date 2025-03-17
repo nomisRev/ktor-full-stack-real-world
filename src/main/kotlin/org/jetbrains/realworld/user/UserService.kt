@@ -22,8 +22,6 @@ class UserService(
                 it[username] = registration.username
                 it[password] = res.hash
                 it[salt] = res.salt
-                it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
-                it[updatedAt] = OffsetDateTime.now(ZoneOffset.UTC)
             }.value
         }
         val newToken = createAndUpdateToken(userId)

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
+    alias(libs.plugins.kotlin.assert)
 }
 
 group = "org.jetbrains"
@@ -15,8 +16,9 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
-repositories {
-    mavenCentral()
+@Suppress("OPT_IN_USAGE")
+powerAssert {
+    functions = listOf("kotlin.test.assertEquals")
 }
 
 dependencies {

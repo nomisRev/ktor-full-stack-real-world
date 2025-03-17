@@ -17,8 +17,8 @@ object PostgresContainer {
                 withDatabaseName("ktor_sample")
                 withUsername("ktor_user")
                 withPassword("<PASSWORD>")
+                withCommand("postgres -c max_connections=200")
                 waitingFor(Wait.forListeningPort())
-//                withCommand("postgres -c shared_preload_libraries=vector")
                 start()
             }
     }
@@ -31,7 +31,7 @@ object PostgresContainer {
             put("database.username", container.username)
             put("database.password", container.password)
             put("database.driverClassName", container.driverClassName)
-            put("database.maxPoolSize", "5")
+            put("database.maxPoolSize", "3")
             put("database.cachePrepStmts", "true")
             put("database.prepStmtCacheSize", "250")
             put("database.prepStmtCacheSqlLimit", "2048")
@@ -47,7 +47,7 @@ object PostgresContainer {
             name = container.databaseName,
             username = container.username,
             password = container.password,
-            maxPoolSize = 5,
+            maxPoolSize = 3,
             cachePrepStmts = true,
             prepStmtCacheSize = 250,
             prepStmtCacheSqlLimit = 2048,

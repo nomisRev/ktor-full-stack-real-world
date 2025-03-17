@@ -5,18 +5,15 @@ ktor:
     deployment:
         port: 8080
 
-    # Configure security headers
     security:
         headers:
             xContentTypeOptions: true
             xFrameOptions: "DENY"
             contentSecurityPolicy: "default-src 'self'"
 
-    # Configure metrics
     metrics:
         enabled: true
 
-    # Configure logging
     logging:
         level: INFO
         loggers:
@@ -38,7 +35,6 @@ database:
         locations: "classpath:db/migration"
         baselineOnMigrate: true
 
-# JWT Authentication configuration
 jwt:
     secret: "realworld-jwt-secret-key-should-be-at-least-32-characters"
     issuer: "realworld-api"

@@ -41,77 +41,77 @@ This document outlines the plan for implementing the RealWorld Conduit API using
   - Set up password hashing with Argon2
 
 - [x] **Issue 2.2: User Registration**
-  - Implement `/users` POST endpoint
+  - Implement `/users` POST endpoint (OpenAPI: `/users` POST, `NewUserRequest`, `UserResponse`)
   - Add validation for user registration
   - Handle duplicate email/username errors
 
 - [x] **Issue 2.3: User Login**
-  - Implement `/users/login` POST endpoint
+  - Implement `/users/login` POST endpoint (OpenAPI: `/users/login` POST, `LoginUserRequest`, `UserResponse`)
   - Add validation for login credentials
   - Generate and return JWT token
 
 - [x] **Issue 2.4: Current User Retrieval**
-  - Implement `/user` GET endpoint
+  - Implement `/user` GET endpoint (OpenAPI: `/user` GET, `UserResponse`)
   - Add authentication middleware
   - Return current user information
 
 - [x] **Issue 2.5: User Update**
-  - Implement `/user` PUT endpoint
+  - Implement `/user` PUT endpoint (OpenAPI: `/user` PUT, `UpdateUserRequest`, `UserResponse`)
   - Add validation for user updates
   - Handle email/username uniqueness
 
 ## Sprint 3: Profile Management
 
-- [ ] **Issue 3.1: Profile Data Model**
+- [x] **Issue 3.1: Profile Data Model**
   - Create necessary database tables/relations
-  - Implement Profile data classes
+  - Implement Profile data classes (OpenAPI: `Profile` schema)
 
-- [ ] **Issue 3.2: Profile Retrieval**
-  - Implement `/profiles/{username}` GET endpoint
+- [x] **Issue 3.2: Profile Retrieval**
+  - Implement `/profiles/{username}` GET endpoint (OpenAPI: `/profiles/{username}` GET, `ProfileResponse`)
   - Handle non-existent profiles
 
-- [ ] **Issue 3.3: Follow User**
-  - Implement `/profiles/{username}/follow` POST endpoint
+- [x] **Issue 3.3: Follow User**
+  - Implement `/profiles/{username}/follow` POST endpoint (OpenAPI: `/profiles/{username}/follow` POST, `ProfileResponse`)
   - Create follow relationship in database
 
-- [ ] **Issue 3.4: Unfollow User**
-  - Implement `/profiles/{username}/follow` DELETE endpoint
+- [x] **Issue 3.4: Unfollow User**
+  - Implement `/profiles/{username}/follow` DELETE endpoint (OpenAPI: `/profiles/{username}/follow` DELETE, `ProfileResponse`)
   - Remove follow relationship from database
 
 ## Sprint 4: Article Management
 
-- [ ] **Issue 4.1: Article Data Model**
+- [x] **Issue 4.1: Article Data Model**
   - Create Article table in the database
-  - Implement Article data classes
+  - Implement Article data classes (OpenAPI: `Article` schema)
   - Set up relationships with User and Tag models
 
-- [ ] **Issue 4.2: Create Article**
-  - Implement `/articles` POST endpoint
+- [x] **Issue 4.2: Create Article**
+  - Implement `/articles` POST endpoint (OpenAPI: `/articles` POST, `NewArticleRequest`, `SingleArticleResponse`)
   - Add validation for article creation
   - Handle tag creation/association
   - Generate article slug
 
-- [ ] **Issue 4.3: Get Articles**
-  - Implement `/articles` GET endpoint
+- [x] **Issue 4.3: Get Articles**
+  - Implement `/articles` GET endpoint (OpenAPI: `/articles` GET, `MultipleArticlesResponse`)
   - Add filtering by tag, author, favorited
   - Implement pagination (offset, limit)
 
-- [ ] **Issue 4.4: Feed Articles**
-  - Implement `/articles/feed` GET endpoint
+- [x] **Issue 4.4: Feed Articles**
+  - Implement `/articles/feed` GET endpoint (OpenAPI: `/articles/feed` GET, `MultipleArticlesResponse`)
   - Filter articles by followed users
   - Implement pagination
 
-- [ ] **Issue 4.5: Get Article**
-  - Implement `/articles/{slug}` GET endpoint
+- [x] **Issue 4.5: Get Article**
+  - Implement `/articles/{slug}` GET endpoint (OpenAPI: `/articles/{slug}` GET, `SingleArticleResponse`)
   - Handle non-existent articles
 
-- [ ] **Issue 4.6: Update Article**
-  - Implement `/articles/{slug}` PUT endpoint
+- [x] **Issue 4.6: Update Article**
+  - Implement `/articles/{slug}` PUT endpoint (OpenAPI: `/articles/{slug}` PUT, `UpdateArticleRequest`, `SingleArticleResponse`)
   - Add validation for article updates
   - Handle slug updates if title changes
 
-- [ ] **Issue 4.7: Delete Article**
-  - Implement `/articles/{slug}` DELETE endpoint
+- [x] **Issue 4.7: Delete Article**
+  - Implement `/articles/{slug}` DELETE endpoint (OpenAPI: `/articles/{slug}` DELETE, `EmptyOkResponse`)
   - Add authorization check (only author can delete)
   - Handle cascading deletes (comments, favorites)
 
@@ -119,38 +119,38 @@ This document outlines the plan for implementing the RealWorld Conduit API using
 
 - [ ] **Issue 5.1: Comment Data Model**
   - Create Comment table in the database
-  - Implement Comment data classes
+  - Implement Comment data classes (OpenAPI: `Comment` schema)
   - Set up relationships with Article and User models
 
 - [ ] **Issue 5.2: Create Comment**
-  - Implement `/articles/{slug}/comments` POST endpoint
+  - Implement `/articles/{slug}/comments` POST endpoint (OpenAPI: `/articles/{slug}/comments` POST, `NewCommentRequest`, `SingleCommentResponse`)
   - Add validation for comment creation
 
 - [ ] **Issue 5.3: Get Comments**
-  - Implement `/articles/{slug}/comments` GET endpoint
+  - Implement `/articles/{slug}/comments` GET endpoint (OpenAPI: `/articles/{slug}/comments` GET, `MultipleCommentsResponse`)
   - Handle article not found
 
 - [ ] **Issue 5.4: Delete Comment**
-  - Implement `/articles/{slug}/comments/{id}` DELETE endpoint
+  - Implement `/articles/{slug}/comments/{id}` DELETE endpoint (OpenAPI: `/articles/{slug}/comments/{id}` DELETE, `EmptyOkResponse`)
   - Add authorization check (only author can delete)
 
 - [ ] **Issue 5.5: Favorite Article**
-  - Implement `/articles/{slug}/favorite` POST endpoint
+  - Implement `/articles/{slug}/favorite` POST endpoint (OpenAPI: `/articles/{slug}/favorite` POST, `SingleArticleResponse`)
   - Update favorites count in Article
 
 - [ ] **Issue 5.6: Unfavorite Article**
-  - Implement `/articles/{slug}/favorite` DELETE endpoint
+  - Implement `/articles/{slug}/favorite` DELETE endpoint (OpenAPI: `/articles/{slug}/favorite` DELETE, `SingleArticleResponse`)
   - Update favorites count in Article
 
 ## Sprint 6: Tags and Final Features
 
 - [ ] **Issue 6.1: Tag Data Model**
   - Create Tag table in the database
-  - Implement Tag data classes
+  - Implement Tag data classes (OpenAPI: Tag string array in `Article` schema)
   - Set up many-to-many relationship with Articles
 
 - [ ] **Issue 6.2: Get Tags**
-  - Implement `/tags` GET endpoint
+  - Implement `/tags` GET endpoint (OpenAPI: `/tags` GET, `TagsResponse`)
   - Return all unique tags in the system
 
 - [ ] **Issue 6.3: Integration Testing**
