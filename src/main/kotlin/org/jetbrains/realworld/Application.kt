@@ -17,7 +17,9 @@ import org.jetbrains.realworld.user.userRoutes
 import org.jetbrains.realworld.profile.ProfileService
 import org.jetbrains.realworld.profile.profileRoutes
 import org.jetbrains.realworld.article.ArticleService
+import org.jetbrains.realworld.article.TagService
 import org.jetbrains.realworld.article.articleRoutes
+import org.jetbrains.realworld.article.tagRoutes
 import org.jetbrains.realworld.comment.CommentService
 import org.jetbrains.realworld.comment.commentRoutes
 
@@ -37,6 +39,7 @@ fun Application.module() {
     val profileService = ProfileService(database)
     val articleService = ArticleService(database, profileService)
     val commentService = CommentService(database, profileService)
+    val tagService = TagService(database)
 
     configureAuthentication(jwtConfig, userService)
     configureValidation()
@@ -46,6 +49,7 @@ fun Application.module() {
         profileRoutes(profileService)
         articleRoutes(articleService)
         commentRoutes(commentService)
+        tagRoutes(tagService)
     }
 }
 

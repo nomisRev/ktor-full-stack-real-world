@@ -117,48 +117,48 @@ This document outlines the plan for implementing the RealWorld Conduit API using
 
 ## Sprint 5: Comments and Favorites
 
-- [ ] **Issue 5.1: Comment Data Model**
+- [x] **Issue 5.1: Comment Data Model**
   - Create Comment table in the database
   - Implement Comment data classes (OpenAPI: `Comment` schema)
   - Set up relationships with Article and User models
 
-- [ ] **Issue 5.2: Create Comment**
+- [x] **Issue 5.2: Create Comment**
   - Implement `/articles/{slug}/comments` POST endpoint (OpenAPI: `/articles/{slug}/comments` POST, `NewCommentRequest`, `SingleCommentResponse`)
   - Add validation for comment creation
 
-- [ ] **Issue 5.3: Get Comments**
+- [x] **Issue 5.3: Get Comments**
   - Implement `/articles/{slug}/comments` GET endpoint (OpenAPI: `/articles/{slug}/comments` GET, `MultipleCommentsResponse`)
   - Handle article not found
 
-- [ ] **Issue 5.4: Delete Comment**
+- [x] **Issue 5.4: Delete Comment**
   - Implement `/articles/{slug}/comments/{id}` DELETE endpoint (OpenAPI: `/articles/{slug}/comments/{id}` DELETE, `EmptyOkResponse`)
   - Add authorization check (only author can delete)
 
-- [ ] **Issue 5.5: Favorite Article**
+- [x] **Issue 5.5: Favorite Article**
   - Implement `/articles/{slug}/favorite` POST endpoint (OpenAPI: `/articles/{slug}/favorite` POST, `SingleArticleResponse`)
   - Update favorites count in Article
 
-- [ ] **Issue 5.6: Unfavorite Article**
+- [x] **Issue 5.6: Unfavorite Article**
   - Implement `/articles/{slug}/favorite` DELETE endpoint (OpenAPI: `/articles/{slug}/favorite` DELETE, `SingleArticleResponse`)
   - Update favorites count in Article
 
 ## Sprint 6: Tags and Final Features
 
-- [ ] **Issue 6.1: Tag Data Model**
+- [x] **Issue 6.1: Tag Data Model**
   - Create Tag table in the database
   - Implement Tag data classes (OpenAPI: Tag string array in `Article` schema)
   - Set up many-to-many relationship with Articles
 
-- [ ] **Issue 6.2: Get Tags**
+- [x] **Issue 6.2: Get Tags**
   - Implement `/tags` GET endpoint (OpenAPI: `/tags` GET, `TagsResponse`)
   - Return all unique tags in the system
 
-- [ ] **Issue 6.3: Integration Testing**
+- [x] **Issue 6.3: Integration Testing**
   - Set up integration tests using Ktor's testing utilities
   - Test all API endpoints
   - Verify against the Postman collection
 
-- [ ] **Issue 6.4: Performance Optimization**
+- [x] **Issue 6.4: Performance Optimization**
   - Optimize database queries
   - Add caching where appropriate
   - Ensure efficient pagination

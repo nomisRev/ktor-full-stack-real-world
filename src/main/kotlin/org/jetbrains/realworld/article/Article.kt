@@ -95,3 +95,5 @@ data class ArticleWithoutBody(
     val author: Profile,
 )
 
+@Serializable
+data class TagsResponse(val tags: List<String>)
