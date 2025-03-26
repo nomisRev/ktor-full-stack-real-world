@@ -14,13 +14,11 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.jetbrains.realworld.user.Argon2Hasher
 import org.jetbrains.realworld.user.UserService
 import org.jetbrains.realworld.user.userRoutes
-import org.jetbrains.realworld.profile.ProfileService
+import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.profile.profileRoutes
-import org.jetbrains.realworld.article.ArticleService
-import org.jetbrains.realworld.article.TagService
+import org.jetbrains.realworld.article.ArticleRepository
 import org.jetbrains.realworld.article.articleRoutes
-import org.jetbrains.realworld.article.tagRoutes
-import org.jetbrains.realworld.comment.CommentService
+import org.jetbrains.realworld.comment.CommentRepository
 import org.jetbrains.realworld.comment.commentRoutes
 
 fun main(args: Array<String>) =
@@ -36,20 +34,18 @@ fun Application.module() {
 
     val jwtConfig = JwtConfig.load(environment)
     val userService = UserService(jwtConfig, database, Argon2Hasher())
-    val profileService = ProfileService(database)
-    val articleService = ArticleService(database, profileService)
-    val commentService = CommentService(database, profileService)
-    val tagService = TagService(database)
+    val profileRepository = ProfileRepository(database)
+    val articleRepository = ArticleRepository(database, profileRepository)
+    val commentRepository = CommentRepository(database, profileRepository)
 
     configureAuthentication(jwtConfig, userService)
     configureValidation()
 
     routing {
         userRoutes(userService)
-        profileRoutes(profileService)
-        articleRoutes(articleService)
-        commentRoutes(commentService)
-        tagRoutes(tagService)
+        profileRoutes(profileRepository)
+        articleRoutes(articleRepository)
+        commentRoutes(commentRepository)
     }
 }
 

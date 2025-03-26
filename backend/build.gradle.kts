@@ -22,6 +22,7 @@ powerAssert {
 }
 
 dependencies {
+    implementation(projects.conduitApi)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.kotlinx.json)
     implementation(libs.ktor.server.content.negotiation)

@@ -1,20 +1,51 @@
 package org.jetbrains.realworld.article
 
+import kotlinx.datetime.Clock
+import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inSubQuery
+import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.profile.Follows
 import org.jetbrains.realworld.profile.Profile
-import org.jetbrains.realworld.profile.ProfileService
+import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Users
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
-class ArticleService(
+object Articles : LongIdTable("articles", "article_id") {
+    val slug = varchar("slug", 255).uniqueIndex()
+    val title = varchar("title", 255)
+    val description = text("description")
+    val body = text("body")
+    val authorId = reference("author_id", Users)
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+    val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
+}
+
+object Tags : LongIdTable("tags", "tag_id") {
+    val name = varchar("name", 255).uniqueIndex()
+}
+
+object ArticleTags : Table("article_tags") {
+    val articleId = reference("article_id", Articles)
+    val tagId = reference("tag_id", Tags)
+
+    override val primaryKey = PrimaryKey(articleId, tagId)
+}
+
+object Favorites : Table("favorites") {
+    val userId = reference("user_id", Users)
+    val articleId = reference("article_id", Articles)
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+
+    override val primaryKey = PrimaryKey(userId, articleId)
+}
+
+
+class ArticleRepository(
     private val database: Database,
-    private val profileService: ProfileService
+    private val profileRepository: ProfileRepository
 ) {
 
     fun getArticles(
@@ -72,7 +103,7 @@ class ArticleService(
                         .count() > 0
                 } else false
 
-                val authorProfile = profileService.getProfileOrNull(row[Users.username], currentUserId)!!
+                val authorProfile = profileRepository.getProfileOrNull(row[Users.username], currentUserId)!!
 
                 ArticleWithoutBody(
                     slug = row[Articles.slug],
@@ -126,7 +157,7 @@ class ArticleService(
                     .where { (Favorites.articleId eq articleId) and (Favorites.userId eq currentUserId) }
                     .count() > 0
 
-                val authorProfile = profileService.getProfileOrNull(row[Users.username], currentUserId)!!
+                val authorProfile = profileRepository.getProfileOrNull(row[Users.username], currentUserId)!!
 
                 val createdAt = row[Articles.createdAt]
                 val updatedAt = row[Articles.updatedAt]
@@ -161,16 +192,16 @@ class ArticleService(
 
         val articleId = article[Articles.id].value
 
-        val newSlug = if (update.title != null) generateSlug(update.title) else slug
+        val newSlug = update.title?.let { generateSlug(it) } ?: slug
 
-        Articles.update({ Articles.id eq articleId }) {
-            if (update.title != null) {
-                it[title] = update.title
-                it[this.slug] = newSlug
+        Articles.update({ Articles.id eq articleId }) { row ->
+            update.title?.let {
+                row[title] = it
+                row[this.slug] = newSlug
             }
-            if (update.description != null) it[description] = update.description
-            if (update.body != null) it[body] = update.body
-            it[updatedAt] = OffsetDateTime.now(ZoneOffset.UTC)
+            update.description?.let { row[description] = it }
+            update.body?.let { row[body] = it }
+            row[updatedAt] = Clock.System.now()
         }
 
         getArticleBySlug(newSlug, authorId)
@@ -179,7 +210,7 @@ class ArticleService(
     fun createArticle(authorId: Long, newArticle: NewArticle): Article? = transaction(database) {
         val slug = generateSlug(newArticle.title)
 
-        val now = OffsetDateTime.now(ZoneOffset.UTC)
+        val now = Clock.System.now()
         val insert = Articles.insertReturning(listOf(Articles.id, Articles.createdAt, Articles.updatedAt)) {
             it[this.slug] = slug
             it[title] = newArticle.title
@@ -261,7 +292,7 @@ class ArticleService(
                 .count() > 0
         } else false
 
-        val authorProfile = profileService.getProfileOrNull(row[Users.username], currentUserId)!!
+        val authorProfile = profileRepository.getProfileOrNull(row[Users.username], currentUserId)!!
 
         Article(
             slug = row[Articles.slug],
@@ -328,6 +359,10 @@ class ArticleService(
         Favorites.deleteWhere { (Favorites.articleId eq articleId) and (Favorites.userId eq userId) }
 
         getArticleBySlug(slug, userId)
+    }
+
+    fun allTags(): List<String> = transaction(database) {
+        Tags.select(Tags.name).map { it[Tags.name] }
     }
 
     private fun generateSlug(title: String): String =

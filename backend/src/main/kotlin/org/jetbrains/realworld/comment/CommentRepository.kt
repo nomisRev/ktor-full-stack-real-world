@@ -1,18 +1,31 @@
 package org.jetbrains.realworld.comment
 
+import kotlinx.datetime.Clock
+import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.sql.kotlin.datetime.timestampWithTimeZone
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.article.Articles
-import org.jetbrains.realworld.profile.ProfileService
+import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Users
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-class CommentService(
+private object CommentsTable : LongIdTable("comments", "comment_id") {
+    val articleId = reference("article_id", Articles)
+    val authorId = reference("author_id", Users)
+    val body = text("body")
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+    val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
+}
+
+class CommentRepository(
     private val database: Database,
-    private val profileService: ProfileService
+    private val profileRepository: ProfileRepository
 ) {
     private val dateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
@@ -23,14 +36,14 @@ class CommentService(
             .singleOrNull()?.get(Articles.id)?.value
 
         if (articleId == null) null
-        else Comments
-            .innerJoin(Users) { Comments.authorId eq Users.id }
+        else CommentsTable
+            .innerJoin(Users) { CommentsTable.authorId eq Users.id }
             .select(
-                Comments.id, Comments.body, Comments.createdAt, Comments.updatedAt,
-                Comments.authorId, Users.username
+                CommentsTable.id, CommentsTable.body, CommentsTable.createdAt, CommentsTable.updatedAt,
+                CommentsTable.authorId, Users.username
             )
-            .where { Comments.articleId eq articleId }
-            .orderBy(Comments.createdAt, SortOrder.DESC)
+            .where { CommentsTable.articleId eq articleId }
+            .orderBy(CommentsTable.createdAt, SortOrder.DESC)
             .map { row -> row.toComment(currentUserId) }
     }
 
@@ -40,8 +53,8 @@ class CommentService(
             .where { Articles.slug eq slug }
             .singleOrNull()?.get(Articles.id)?.value ?: return@transaction null
 
-        val now = OffsetDateTime.now(ZoneOffset.UTC)
-        val commentId = Comments.insertAndGetId {
+        val now = Clock.System.now()
+        val commentId = CommentsTable.insertAndGetId {
             it[this.articleId] = articleId
             it[this.authorId] = authorId
             it[body] = newComment.body
@@ -53,7 +66,7 @@ class CommentService(
             .where { Users.id eq authorId }
             .single()
 
-        val authorProfile = profileService.getProfileOrNull(author[Users.username], authorId)!!
+        val authorProfile = profileRepository.getProfileOrNull(author[Users.username], authorId)!!
 
         Comment(
             id = commentId,
@@ -65,16 +78,16 @@ class CommentService(
     }
 
     fun deleteComment(slug: String, commentId: Long, currentUserId: Long): Boolean = transaction(database) {
-        Comments.deleteWhere { (Comments.id eq commentId) and (Comments.authorId eq currentUserId) } > 0
+        CommentsTable.deleteWhere { (CommentsTable.id eq commentId) and (CommentsTable.authorId eq currentUserId) } > 0
     }
 
     private fun ResultRow.toComment(currentUserId: Long?): Comment {
-        val authorProfile = profileService.getProfileOrNull(this[Users.username], currentUserId)!!
+        val authorProfile = profileRepository.getProfileOrNull(this[Users.username], currentUserId)!!
         return Comment(
-            id = this[Comments.id].value,
-            body = this[Comments.body],
-            createdAt = this[Comments.createdAt],
-            updatedAt = this[Comments.updatedAt],
+            id = this[CommentsTable.id].value,
+            body = this[CommentsTable.body],
+            createdAt = this[CommentsTable.createdAt],
+            updatedAt = this[CommentsTable.updatedAt],
             author = authorProfile
         )
     }

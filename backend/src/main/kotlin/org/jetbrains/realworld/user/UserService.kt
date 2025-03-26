@@ -2,12 +2,30 @@ package org.jetbrains.realworld.user
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import kotlinx.datetime.Clock
+import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
+import org.jetbrains.exposed.sql.kotlin.datetime.time
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.sql.kotlin.datetime.timestampWithTimeZone
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.JwtConfig
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.Date
+
+object Users : LongIdTable("users", "user_id") {
+    val email = varchar("email", 255).uniqueIndex()
+    val username = varchar("username", 255).uniqueIndex()
+    val password = binary("password")
+    val salt = binary("salt")
+    val bio = text("bio").nullable()
+    val image = varchar("image", 255).nullable()
+    val token = text("token").nullable()
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+    val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
+}
 
 class UserService(
     private val jwtConfig: JwtConfig,
@@ -79,7 +97,7 @@ class UserService(
     }
 
     suspend fun updateUserOrNull(userId: Long, update: UserUpdate): User? {
-        val result = if (update.password != null) hasher.encrypt(update.password) else null
+        val result = update.password?.let { hasher.encrypt(it) }
         val newToken = if (result != null) createToken(userId) else null
         val hasUpdate =
             update.email != null || update.username != null || update.bio != null || update.image != null || update.password != null
@@ -87,17 +105,17 @@ class UserService(
             Users.updateReturning(
                 listOf(Users.id, Users.username, Users.email, Users.bio, Users.image, Users.token),
                 { Users.id eq userId }
-            ) {
-                if (update.email != null) it[email] = update.email
-                if (update.username != null) it[username] = update.username
-                if (update.bio != null) it[bio] = update.bio
-                if (update.image != null) it[image] = update.image
+            ) { row ->
+                update.email?.let { row[email] = it }
+                update.username?.let { row[username] = it }
+                update.bio?.let { row[bio] = it }
+                update.image?.let { row[image] = it }
                 if (result != null) {
-                    it[salt] = result.salt
-                    it[password] = result.hash
-                    it[token] = newToken
+                    row[salt] = result.salt
+                    row[password] = result.hash
+                    row[token] = newToken
                 }
-                if (hasUpdate) it[updatedAt] = OffsetDateTime.now(ZoneOffset.UTC)
+                if (hasUpdate) row[updatedAt] = Clock.System.now()
             }.singleOrNull()?.toUser()
         }
     }

@@ -1,7 +1,6 @@
 package org.jetbrains.realworld.article
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.resources.Resource
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
@@ -14,19 +13,7 @@ import io.ktor.server.routing.Route
 import org.jetbrains.realworld.UserJWT
 import org.jetbrains.realworld.error.ErrorResponse
 
-@Resource("/articles")
-class ArticlesResource {
-    @Resource("feed")
-    class Feed(val parent: ArticlesResource, val limit: Int? = null, val offset: Int? = null)
-
-    @Resource("{slug}")
-    class BySlug(val parent: ArticlesResource, val slug: String) {
-        @Resource("favorite")
-        class Favorite(val parent: BySlug)
-    }
-}
-
-fun Route.articleRoutes(articleService: ArticleService) {
+fun Route.articleRoutes(articleRepository: ArticleRepository) {
     authenticate(optional = true) {
         get<ArticlesResource> { resource ->
             val userId = call.principal<UserJWT>()?.userId
@@ -36,7 +23,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
             val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
             val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
 
-            val result = articleService.getArticles(
+            val result = articleRepository.getArticles(
                 tag = tag,
                 author = author,
                 favorited = favorited,
@@ -50,7 +37,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
 
         get<ArticlesResource.BySlug> { resource ->
             val principal = call.principal<UserJWT>()
-            val article = articleService.getArticleBySlug(resource.slug, principal?.userId)
+            val article = articleRepository.getArticleBySlug(resource.slug, principal?.userId)
 
             if (article != null) {
                 call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
@@ -66,7 +53,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
             val limit = resource.limit ?: 20
             val offset = resource.offset ?: 0
 
-            val result = articleService.getFeed(
+            val result = articleRepository.getFeed(
                 currentUserId = principal.userId,
                 limit = limit,
                 offset = offset
@@ -79,7 +66,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
             val principal = call.principal<UserJWT>()!!
             val request = call.receive<NewArticleRequest>()
 
-            val article = articleService.createArticle(principal.userId, request.article)
+            val article = articleRepository.createArticle(principal.userId, request.article)
 
             if (article != null) call.respond(HttpStatusCode.Created, SingleArticleResponse(article))
             else call.respond(HttpStatusCode.UnprocessableEntity, ErrorResponse("article", "could not be created"))
@@ -89,7 +76,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
             val principal = call.principal<UserJWT>()!!
             val request = call.receive<UpdateArticleRequest>()
 
-            val article = articleService.updateArticle(resource.slug, principal.userId, request.article)
+            val article = articleRepository.updateArticle(resource.slug, principal.userId, request.article)
 
             if (article != null) {
                 call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
@@ -101,7 +88,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
         delete<ArticlesResource.BySlug> { resource ->
             val principal = call.principal<UserJWT>()!!
 
-            val success = articleService.deleteArticle(resource.slug, principal.userId)
+            val success = articleRepository.deleteArticle(resource.slug, principal.userId)
 
             if (success) {
                 call.respond(HttpStatusCode.NoContent)
@@ -113,7 +100,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
         post<ArticlesResource.BySlug.Favorite> { resource ->
             val principal = call.principal<UserJWT>()!!
 
-            val article = articleService.favoriteArticle(resource.parent.slug, principal.userId)
+            val article = articleRepository.favoriteArticle(resource.parent.slug, principal.userId)
 
             if (article != null) {
                 call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
@@ -125,7 +112,7 @@ fun Route.articleRoutes(articleService: ArticleService) {
         delete<ArticlesResource.BySlug.Favorite> { resource ->
             val principal = call.principal<UserJWT>()!!
 
-            val article = articleService.unfavoriteArticle(resource.parent.slug, principal.userId)
+            val article = articleRepository.unfavoriteArticle(resource.parent.slug, principal.userId)
 
             if (article != null) {
                 call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
@@ -133,5 +120,10 @@ fun Route.articleRoutes(articleService: ArticleService) {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse("article", "not found"))
             }
         }
+    }
+
+    get<TagsResource> {
+        val tags = articleRepository.allTags()
+        call.respond(HttpStatusCode.OK, TagsResponse(tags))
     }
 }

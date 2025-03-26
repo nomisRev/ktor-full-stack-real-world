@@ -2,13 +2,11 @@ package org.jetbrains.realworld.comment
 
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.DatabaseSpec
-import org.jetbrains.realworld.article.Articles
-import org.jetbrains.realworld.article.ArticleService
+import org.jetbrains.realworld.article.ArticleRepository
 import org.jetbrains.realworld.article.NewArticle
-import org.jetbrains.realworld.profile.ProfileService
+import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Argon2Hasher
 import org.jetbrains.realworld.user.Users
 import kotlin.test.Test
@@ -22,9 +20,9 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class CommentServiceTest : DatabaseSpec() {
-    private val profileService by lazy { ProfileService(database) }
-    private val articleService by lazy { ArticleService(database, profileService) }
-    private val commentService by lazy { CommentService(database, profileService) }
+    private val profileRepository by lazy { ProfileRepository(database) }
+    private val articleRepository by lazy { ArticleRepository(database, profileRepository) }
+    private val commentRepository by lazy { CommentRepository(database, profileRepository) }
     private val hasher by lazy { Argon2Hasher() }
 
     private suspend fun createTestUser(
@@ -56,7 +54,7 @@ class CommentServiceTest : DatabaseSpec() {
         tagList: List<String> = listOf("test", "article")
     ): String {
         val newArticle = NewArticle(title, description, body, tagList)
-        return articleService.createArticle(authorId, newArticle)!!.slug
+        return articleRepository.createArticle(authorId, newArticle)!!.slug
     }
 
     private fun createTestComment(
@@ -65,7 +63,7 @@ class CommentServiceTest : DatabaseSpec() {
         body: String = "Test comment ${Uuid.random()}"
     ): Comment {
         val newComment = NewComment(body)
-        return commentService.createComment(slug, authorId, newComment)!!
+        return commentRepository.createComment(slug, authorId, newComment)!!
     }
 
     @Test
@@ -75,7 +73,7 @@ class CommentServiceTest : DatabaseSpec() {
         val slug = createTestArticle(authorId)
         val commentBody = "This is a test comment"
 
-        val comment = commentService.createComment(slug, authorId, NewComment(commentBody))
+        val comment = commentRepository.createComment(slug, authorId, NewComment(commentBody))
 
         assertNotNull(comment, "Comment should not be null")
         assertEquals(commentBody, comment.body)
@@ -91,7 +89,7 @@ class CommentServiceTest : DatabaseSpec() {
         val comment1 = createTestComment(slug, authorId, "Comment 1")
         val comment2 = createTestComment(slug, authorId, "Comment 2")
 
-        val comments = commentService.getComments(slug, authorId)
+        val comments = commentRepository.getComments(slug, authorId)
 
         assertNotNull(comments, "Comments should not be null")
         assertTrue(comments.size >= 2, "Should retrieve at least 2 comments")
@@ -102,7 +100,7 @@ class CommentServiceTest : DatabaseSpec() {
     @Test
     fun testGetCommentsForNonExistentArticle() = runBlocking {
         val authorId = createTestUser()
-        val comments = commentService.getComments("non-existent-slug", authorId)
+        val comments = commentRepository.getComments("non-existent-slug", authorId)
 
         assertNull(comments, "Comments should be null for non-existent article")
     }
@@ -113,11 +111,11 @@ class CommentServiceTest : DatabaseSpec() {
         val slug = createTestArticle(authorId)
         val comment = createTestComment(slug, authorId)
 
-        val success = commentService.deleteComment(slug, comment.id, authorId)
+        val success = commentRepository.deleteComment(slug, comment.id, authorId)
 
         assertTrue(success, "Comment should be deleted")
 
-        val comments = commentService.getComments(slug, authorId)
+        val comments = commentRepository.getComments(slug, authorId)
         assertNotNull(comments, "Comments should not be null")
         assertFalse(comments.any { it.id == comment.id }, "Deleted comment should not be in the list")
     }
@@ -129,11 +127,11 @@ class CommentServiceTest : DatabaseSpec() {
         val slug = createTestArticle(authorId)
         val comment = createTestComment(slug, authorId)
 
-        val success = commentService.deleteComment(slug, comment.id, unauthorizedUserId)
+        val success = commentRepository.deleteComment(slug, comment.id, unauthorizedUserId)
 
         assertFalse(success, "Unauthorized user should not be able to delete comment")
 
-        val comments = commentService.getComments(slug, authorId)
+        val comments = commentRepository.getComments(slug, authorId)
         assertNotNull(comments, "Comments should not be null")
         assertTrue(comments.any { it.id == comment.id }, "Comment should still exist")
     }

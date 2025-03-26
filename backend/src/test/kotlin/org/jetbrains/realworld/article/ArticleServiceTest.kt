@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.DatabaseSpec
 import org.jetbrains.realworld.profile.Follows
-import org.jetbrains.realworld.profile.ProfileService
+import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Argon2Hasher
 import org.jetbrains.realworld.user.Users
 import kotlin.test.Test
@@ -19,8 +19,8 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class ArticleServiceTest : DatabaseSpec() {
-    private val profileService by lazy { ProfileService(database) }
-    private val service by lazy { ArticleService(database, profileService) }
+    private val profileRepository by lazy { ProfileRepository(database) }
+    private val service by lazy { ArticleRepository(database, profileRepository) }
     private val hasher by lazy { Argon2Hasher() }
 
     private suspend fun createTestUser(
@@ -269,5 +269,33 @@ class ArticleServiceTest : DatabaseSpec() {
         assertNotNull(unfavoritedAgain, "Unfavorited article should not be null")
         assertFalse(unfavoritedAgain.favorited, "Article should still not be marked as favorited")
         assertEquals(0, unfavoritedAgain.favoritesCount, "Favorites count should still be 0")
+    }
+
+    @Test
+    fun testGetAllTags() = runBlocking {
+        // Create unique tags for testing
+        val tag1 = "tag-${Uuid.random()}"
+        val tag2 = "tag-${Uuid.random()}"
+        val tag3 = "tag-${Uuid.random()}"
+
+        // Insert tags directly into the database
+        transaction(database) {
+            Tags.insert {
+                it[name] = tag1
+            }
+            Tags.insert {
+                it[name] = tag2
+            }
+            Tags.insert {
+                it[name] = tag3
+            }
+        }
+
+        // Get all tags using the service
+        val tags = service.allTags()
+
+        assertTrue(tags.contains(tag1), "Response should contain tag1")
+        assertTrue(tags.contains(tag2), "Response should contain tag2")
+        assertTrue(tags.contains(tag3), "Response should contain tag3")
     }
 }

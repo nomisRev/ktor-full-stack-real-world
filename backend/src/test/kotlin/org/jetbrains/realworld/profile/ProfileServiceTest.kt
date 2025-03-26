@@ -17,7 +17,7 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class ProfileServiceTest : DatabaseSpec() {
-    private val service by lazy { ProfileService(database) }
+    private val service by lazy { ProfileRepository(database) }
     private val hasher by lazy { Argon2Hasher() }
 
     private suspend fun createTestUser(

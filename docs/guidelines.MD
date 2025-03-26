@@ -1,5 +1,10 @@
 # Kotlin Project Guidelines
 
+## Tech Stack
+- Ktor - Web framework
+- Exposed - SQL framework
+- BouncyCastle Argon2 - Password hashing
+
 ## General Principles
 
 - Write referentially transparent code
@@ -32,8 +37,8 @@
 - Do not use Exposed DAO, only use the Exposed (Core) DSL
 - Do not use `object XXXFactory`, use proper class and passing of arguments
 - Make sure to close all Closeable and AutoCloseable resources
-- Make sure to close Exposed Database using TransactionManager.closeAndUnregister(database)
-- Use environment.monitor.subscribe(ApplicationStopped) { } to close resources and dependencies
+- Make sure to close Exposed Database using TransactionManager.unregisterAndClose(database)
+- Use environment.on(ApplicationStopped) { } to close resources and dependencies
 
 ## Testing
 
@@ -52,6 +57,19 @@
 - Use copy() carefully to avoid unintended side effects in immutable structures
 - Don't write meaningless comments that express in natural text what is already clear from the function names or code
 - Avoid overly verbose documentation comments that simply repeat property names and types
+- Do not write this kind of comments:
+```
+/**
+ * Represents a document embedding with its metadata.
+ *
+ * @property id The unique identifier of the embedding
+ * @property documentId The identifier of the document this embedding belongs to
+ * @property content The text content that was embedded
+ * @property embedding The vector representation of the content
+ * @property metadata Additional metadata about the document (optional)
+ * @property createdAt The timestamp when the embedding was created
+*/
+```
 
 ## Concurrency & Performance
 

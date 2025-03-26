@@ -1,23 +1,16 @@
 package org.jetbrains.realworld.user
 
-import kotlinx.serialization.Contextual
+import io.ktor.resources.Resource
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.timestampWithTimeZone
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
-object Users : LongIdTable("users", "user_id") {
-    val email = varchar("email", 255).uniqueIndex()
-    val username = varchar("username", 255).uniqueIndex()
-    val password = binary("password")
-    val salt = binary("salt")
-    val bio = text("bio").nullable()
-    val image = varchar("image", 255).nullable()
-    val token = text("token").nullable()
-    val createdAt = timestampWithTimeZone("created_at").default(OffsetDateTime.now(ZoneOffset.UTC))
-    val updatedAt = timestampWithTimeZone("updated_at").default(OffsetDateTime.now(ZoneOffset.UTC))
+@Resource("/users")
+class UsersResource {
+    @Resource("login")
+    class Login(val parent: UsersResource)
 }
+
+@Resource("/user")
+class UserResource
 
 @Serializable
 data class User(

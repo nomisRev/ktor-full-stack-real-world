@@ -1,7 +1,6 @@
 package org.jetbrains.realworld.comment
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.resources.Resource
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
@@ -11,20 +10,13 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import org.jetbrains.realworld.UserJWT
-import org.jetbrains.realworld.article.ArticleService
 import org.jetbrains.realworld.error.ErrorResponse
 
-@Resource("/articles/{slug}/comments")
-class CommentsResource(val slug: String) {
-    @Resource("{id}")
-    class ById(val parent: CommentsResource, val id: Long)
-}
-
-fun Route.commentRoutes(commentService: CommentService) {
+fun Route.commentRoutes(commentRepository: CommentRepository) {
     authenticate(optional = true) {
         get<CommentsResource> { resource ->
             val principal = call.principal<UserJWT>()
-            val comments = commentService.getComments(resource.slug, principal?.userId)
+            val comments = commentRepository.getComments(resource.slug, principal?.userId)
 
             if (comments != null) {
                 call.respond(HttpStatusCode.OK, MultipleCommentsResponse(comments))
@@ -39,7 +31,7 @@ fun Route.commentRoutes(commentService: CommentService) {
             val principal = call.principal<UserJWT>()!!
             val request = call.receive<NewCommentRequest>()
 
-            val comment = commentService.createComment(resource.slug, principal.userId, request.comment)
+            val comment = commentRepository.createComment(resource.slug, principal.userId, request.comment)
 
             if (comment != null) {
                 call.respond(HttpStatusCode.OK, SingleCommentResponse(comment))
@@ -50,7 +42,7 @@ fun Route.commentRoutes(commentService: CommentService) {
 
         delete<CommentsResource.ById> { byId ->
             val principal = call.principal<UserJWT>()!!
-            val success = commentService.deleteComment(byId.parent.slug, byId.id, principal.userId)
+            val success = commentRepository.deleteComment(byId.parent.slug, byId.id, principal.userId)
 
             if (success) {
                 call.respond(HttpStatusCode.OK)

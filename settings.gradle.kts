@@ -30,3 +30,4 @@ dependencyResolutionManagement {
 
 include("backend")
 include("composeApp")
+include("conduit-api")

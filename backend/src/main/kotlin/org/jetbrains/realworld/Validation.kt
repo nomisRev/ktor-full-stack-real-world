@@ -42,12 +42,12 @@ fun Application.configureValidation() {
 
         validate<UserUpdate> { user ->
             when {
-                user.email != null && user.email.isBlank() -> ValidationResult.Invalid("Email cannot be blank")
-                user.email != null && !user.email.contains("@") -> ValidationResult.Invalid("Invalid email format")
-                user.username != null && user.username.isBlank() -> ValidationResult.Invalid("Username cannot be blank")
-                user.username != null && user.username.length < 3 -> ValidationResult.Invalid("Username must be at least 3 characters")
-                user.password != null && user.password.isBlank() -> ValidationResult.Invalid("Password cannot be blank")
-                user.password != null && user.password.length < 8 -> ValidationResult.Invalid("Password must be at least 8 characters")
+                user.email?.isBlank() == true -> ValidationResult.Invalid("Email cannot be blank")
+                user.email?.contains("@") == false -> ValidationResult.Invalid("Invalid email format")
+                user.username?.isBlank() == true -> ValidationResult.Invalid("Username cannot be blank")
+                user.username?.length?.let { it < 3 } == true -> ValidationResult.Invalid("Username must be at least 3 characters")
+                user.password?.isBlank() == true -> ValidationResult.Invalid("Password cannot be blank")
+                user.password?.length?.let { it < 8 } == true -> ValidationResult.Invalid("Password must be at least 8 characters")
                 else -> ValidationResult.Valid
             }
         }

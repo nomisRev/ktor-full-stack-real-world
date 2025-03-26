@@ -2,10 +2,23 @@ package org.jetbrains.realworld.profile
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.sql.kotlin.datetime.timestampWithTimeZone
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.user.Users
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
-class ProfileService(private val database: Database) {
+object Follows : Table("follows") {
+    val followerId = reference("follower_id", Users)
+    val followedId = reference("followed_id", Users)
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+
+    override val primaryKey = PrimaryKey(followerId, followedId)
+}
+
+class ProfileRepository(private val database: Database) {
 
     fun getProfileOrNull(username: String, currentUserId: Long? = null): Profile? = transaction(database) {
         val user = Users.select(Users.id, Users.username, Users.bio, Users.image)

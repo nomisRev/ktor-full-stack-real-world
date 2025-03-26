@@ -1,16 +1,30 @@
-# RealWorld Conduit API
+# RealWorld Conduit - Kotlin Multiplatform Project
 
-This project is an implementation of the [RealWorld](https://github.com/gothinkster/realworld) backend API specification using Kotlin and Ktor. It provides a real-world example of a medium.com clone.
+This project is a Kotlin Multiplatform implementation of the [RealWorld](https://github.com/gothinkster/realworld) application, providing a medium.com clone with both backend and frontend components. It demonstrates how to build a full-stack application using Kotlin across multiple platforms.
 
-## Project Overview
+## Project Structure
 
-The RealWorld Conduit API provides endpoints for:
-- User authentication (registration, login)
-- User profiles (get profile, follow/unfollow)
-- More features coming soon (articles, comments, favorites)
+The project is organized into several modules:
+
+### Backend
+A Ktor-based server that implements the RealWorld API specification, providing endpoints for user authentication, profiles, articles, comments, and more.
+
+### Conduit API
+A Kotlin Multiplatform library that defines the API contract (resources, data models) shared between the backend and client applications. This enables type-safe API communication across all platforms.
+
+### ComposeApp
+A Kotlin Multiplatform UI application using Compose Multiplatform that targets:
+- Android
+- iOS
+- Desktop (JVM)
+- Web (WebAssembly)
+
+### iOS App
+A native iOS application that integrates with the Kotlin Multiplatform code.
 
 ## Tech Stack
 
+### Backend
 - [Kotlin](https://kotlinlang.org/) - Programming language
 - [Ktor](https://ktor.io/) - Web framework
 - [Exposed](https://github.com/JetBrains/Exposed) - SQL framework
@@ -18,20 +32,37 @@ The RealWorld Conduit API provides endpoints for:
 - [JWT](https://jwt.io/) - Authentication
 - [Argon2](https://github.com/P-H-C/phc-winner-argon2) - Password hashing
 - [Flyway](https://flywaydb.org/) - Database migrations
+- [Micrometer](https://micrometer.io/) - Metrics collection
+- [Prometheus](https://prometheus.io/) - Monitoring
+
+### Frontend
+- [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) - Cross-platform Kotlin
+- [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/) - UI framework
+- [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Asynchronous programming
+- [KotlinX Serialization](https://github.com/Kotlin/kotlinx.serialization) - JSON serialization
+- [KotlinX DateTime](https://github.com/Kotlin/kotlinx-datetime) - Date and time handling
 
 ## Development Guidelines
 
-For detailed development guidelines, please refer to the [Guidelines](docs/guidelines.MD) document.
+For detailed development guidelines, please refer to the [Guidelines](docs/guidelines.MD) document. These guidelines cover:
+
+- Kotlin coding practices
+- Architecture and design principles
+- Database and resource management
+- Testing strategies
+- Code style and documentation
+- Concurrency and performance considerations
 
 ## Useful Links
 
+- [Kotlin Multiplatform Documentation](https://kotlinlang.org/docs/multiplatform.html)
+- [Compose Multiplatform Documentation](https://www.jetbrains.com/lp/compose-multiplatform/)
 - [Ktor Documentation](https://ktor.io/docs/home.html)
-- [Ktor GitHub page](https://github.com/ktorio/ktor)
 - [RealWorld API Spec](https://github.com/gothinkster/realworld/tree/master/api)
 
-## Implemented Features
+## API Features
 
-The project currently implements the following features from the RealWorld API specification:
+The backend implements the following features from the RealWorld API specification:
 
 ### User Authentication
 - Registration: `POST /users` - Register a new user
@@ -43,10 +74,6 @@ The project currently implements the following features from the RealWorld API s
 - Get Profile: `GET /profiles/{username}` - Get a user's profile
 - Follow User: `POST /profiles/{username}/follow` - Follow a user
 - Unfollow User: `DELETE /profiles/{username}/follow` - Unfollow a user
-
-## Planned Features
-
-The following features are planned for future implementation:
 
 ### Articles
 - Create Article: `POST /articles` - Create a new article
@@ -73,11 +100,13 @@ The following features are planned for future implementation:
 ### Prerequisites
 
 - JDK 11 or higher
+- Android SDK (for Android development)
+- Xcode (for iOS development)
 - Docker and Docker Compose (for running PostgreSQL)
 
 ### Database Setup
 
-The project uses PostgreSQL as the database. You can start it using Docker Compose:
+The backend uses PostgreSQL as the database. You can start it using Docker Compose:
 
 ```bash
 docker-compose up -d
@@ -85,21 +114,34 @@ docker-compose up -d
 
 This will start a PostgreSQL instance with the configuration specified in the `docker-compose.yaml` file.
 
-### Running the Application
+### Running the Backend
 
-To build and run the application, use one of the following Gradle tasks:
+To build and run the backend, use one of the following Gradle tasks:
 
 | Task                          | Description                                                          |
 | -------------------------------|---------------------------------------------------------------------- |
-| `./gradlew test`              | Run the tests                                                        |
-| `./gradlew build`             | Build everything                                                     |
-| `./gradlew run`               | Run the server                                                       |
-| `./gradlew buildFatJar`       | Build an executable JAR with all dependencies included               |
-| `./gradlew runDocker`         | Run using Docker (requires Docker to be installed)                   |
+| `./gradlew :backend:test`     | Run the backend tests                                                |
+| `./gradlew :backend:build`    | Build the backend                                                    |
+| `./gradlew :backend:run`      | Run the backend server                                               |
+| `./gradlew :backend:buildFatJar` | Build an executable JAR with all dependencies included            |
+
+### Running the ComposeApp
+
+To run the ComposeApp on different platforms:
+
+| Task                                   | Description                                                  |
+| ---------------------------------------|-------------------------------------------------------------- |
+| `./gradlew :composeApp:androidDebug`  | Run on Android device/emulator                               |
+| `./gradlew :composeApp:desktopRun`    | Run on desktop                                               |
+| `./gradlew :composeApp:wasmJsBrowserDevelopmentRun` | Run in browser (WebAssembly)                   |
+
+### Running the iOS App
+
+Open the `iosApp/iosApp.xcodeproj` file in Xcode and run the application from there.
 
 ### Configuration
 
-The application can be configured using environment variables or by modifying the `application.yaml` file in the `src/main/resources` directory.
+The backend can be configured using environment variables or by modifying the `application.yaml` file in the `backend/src/main/resources` directory.
 
 Key configuration properties:
 
@@ -113,6 +155,6 @@ Key configuration properties:
 - `jwt.audience`: Audience for JWT tokens
 - `jwt.realm`: Realm for JWT authentication
 
-### API Documentation
+## API Documentation
 
-Once the server is running, you can access the API at `http://localhost:8080`. The API follows the [RealWorld API specification](https://github.com/gothinkster/realworld/tree/master/api).
+Once the backend server is running, you can access the API at `http://localhost:8080`. The API follows the [RealWorld API specification](https://github.com/gothinkster/realworld/tree/master/api).
