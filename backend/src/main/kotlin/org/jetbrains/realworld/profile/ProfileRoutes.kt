@@ -9,7 +9,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import org.jetbrains.realworld.UserJWT
-import org.jetbrains.realworld.error.ErrorResponse
+import org.jetbrains.realworld.error.GenericErrorModel
 
 fun Route.profileRoutes(profileRepository: ProfileRepository) {
     authenticate(optional = true) {
@@ -18,7 +18,7 @@ fun Route.profileRoutes(profileRepository: ProfileRepository) {
             val profile = profileRepository.getProfileOrNull(resource.username, currentUser?.userId)
 
             if (profile != null) call.respond(HttpStatusCode.OK, ProfileResponse(profile))
-            else call.respond(HttpStatusCode.NotFound, ErrorResponse("profile", "not found"))
+            else call.respond(HttpStatusCode.NotFound, GenericErrorModel("profile not found"))
         }
     }
 
@@ -26,7 +26,7 @@ fun Route.profileRoutes(profileRepository: ProfileRepository) {
         post<ProfileResource.Follow> { resource ->
             val currentUser = call.principal<UserJWT>()
             if (currentUser == null) {
-                call.respond(HttpStatusCode.Unauthorized, ErrorResponse("authorization", "is required"))
+                call.respond(HttpStatusCode.Unauthorized, GenericErrorModel("authorization is required"))
                 return@post
             }
 
@@ -35,7 +35,7 @@ fun Route.profileRoutes(profileRepository: ProfileRepository) {
             if (profile != null) call.respond(HttpStatusCode.OK, ProfileResponse(profile))
             else call.respond(
                 HttpStatusCode.NotFound,
-                ErrorResponse("profile", "not found")
+                GenericErrorModel("profile not found")
             )
         }
 
@@ -46,7 +46,7 @@ fun Route.profileRoutes(profileRepository: ProfileRepository) {
             if (profile != null) call.respond(HttpStatusCode.OK, ProfileResponse(profile))
             else call.respond(
                 HttpStatusCode.NotFound,
-                ErrorResponse("profile", "not found")
+                GenericErrorModel("profile not found")
             )
         }
     }

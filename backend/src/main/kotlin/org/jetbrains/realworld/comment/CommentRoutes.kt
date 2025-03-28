@@ -10,7 +10,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import org.jetbrains.realworld.UserJWT
-import org.jetbrains.realworld.error.ErrorResponse
+import org.jetbrains.realworld.error.GenericErrorModel
 
 fun Route.commentRoutes(commentRepository: CommentRepository) {
     authenticate(optional = true) {
@@ -21,7 +21,7 @@ fun Route.commentRoutes(commentRepository: CommentRepository) {
             if (comments != null) {
                 call.respond(HttpStatusCode.OK, MultipleCommentsResponse(comments))
             } else {
-                call.respond(HttpStatusCode.NotFound, ErrorResponse("article", "not found"))
+                call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
             }
         }
     }
@@ -36,7 +36,7 @@ fun Route.commentRoutes(commentRepository: CommentRepository) {
             if (comment != null) {
                 call.respond(HttpStatusCode.OK, SingleCommentResponse(comment))
             } else {
-                call.respond(HttpStatusCode.NotFound, ErrorResponse("article", "not found"))
+                call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
             }
         }
 
@@ -47,7 +47,7 @@ fun Route.commentRoutes(commentRepository: CommentRepository) {
             if (success) {
                 call.respond(HttpStatusCode.OK)
             } else {
-                call.respond(HttpStatusCode.NotFound, ErrorResponse("comment", "not found or not owned by user"))
+                call.respond(HttpStatusCode.NotFound, GenericErrorModel("comment not found or not owned by user"))
             }
         }
     }

@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
-import org.jetbrains.realworld.error.ErrorResponse
+import org.jetbrains.realworld.error.GenericErrorModel
 import org.jetbrains.realworld.user.UserLogin
 import org.jetbrains.realworld.user.NewUserRequest
 import org.jetbrains.realworld.user.UserUpdate
@@ -13,8 +13,7 @@ import org.jetbrains.realworld.user.UserUpdate
 fun Application.configureValidation() {
     install(StatusPages) {
         exception<RequestValidationException> { call, cause ->
-            val errorMessages = cause.reasons.associateWith { listOf(it) }
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errorMessages))
+            call.respond(HttpStatusCode.BadRequest, GenericErrorModel(cause.reasons))
         }
     }
     install(RequestValidation) {

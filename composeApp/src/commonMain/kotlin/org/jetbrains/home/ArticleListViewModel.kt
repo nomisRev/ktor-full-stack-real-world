@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.realworld.article.ArticleWithoutBody
 import org.jetbrains.realworld.article.ArticlesResource
 import org.jetbrains.realworld.article.MultipleArticlesResponse
-import org.jetbrains.realworld.error.ErrorResponse
+import org.jetbrains.realworld.error.GenericErrorModel
 import org.jetbrains.home.ArticleListUiState.Error
 import org.jetbrains.home.ArticleListUiState.Loading
 import org.jetbrains.home.ArticleListUiState.Success
@@ -39,7 +39,7 @@ class ArticleListViewModel(private val client: HttpClient) : ViewModel() {
                     parameter("offset", 0)
                 }
                 val state = if (response.status.isSuccess()) Success(response.body<MultipleArticlesResponse>().articles)
-                else Error(response.body<ErrorResponse>().message())
+                else Error(response.body<GenericErrorModel>().message())
                 _uiState.value = state
             } catch (e: Exception) {
                 _uiState.value = Error(e.message ?: "Unknown error")

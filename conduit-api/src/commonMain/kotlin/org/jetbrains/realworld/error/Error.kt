@@ -2,11 +2,12 @@ package org.jetbrains.realworld.error
 
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class ErrorResponse(val errors: Map<String, List<String>>) {
-    constructor(field: String, message: String) : this(mapOf(field to listOf(message)))
+@Serializable data class GenericErrorModel(val errors: GenericErrorModelErrors) {
+    constructor(message: String): this(GenericErrorModelErrors(listOf(message)))
+    constructor(errors: List<String>): this(GenericErrorModelErrors(errors))
 
-    fun message(): String = buildString {
-        errors.values.joinTo(this, separator = "; ") { it.joinTo(this) }
-    }
+    fun message(): String =
+        errors.body.joinToString(separator = "; ")
 }
+
+@Serializable data class GenericErrorModelErrors(val body: List<String>)

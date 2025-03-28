@@ -7,10 +7,8 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.respond
-import org.jetbrains.realworld.error.ErrorResponse
 import org.jetbrains.realworld.user.User
 import org.jetbrains.realworld.user.UserService
-import org.slf4j.LoggerFactory
 import java.util.*
 
 data class JwtConfig(

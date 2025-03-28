@@ -137,7 +137,7 @@ class ArticleServiceTest : DatabaseSpec() {
         val article = createTestArticle(authorId)
 
         val deleted = service.deleteArticle(article.slug, authorId)
-        assertTrue(deleted, "Article should be deleted")
+        assertEquals(deleted, true, "Article should be deleted")
 
         val retrievedArticle = service.getArticleBySlug(article.slug)
         assertNull(retrievedArticle, "Article should not exist after deletion")
@@ -150,7 +150,7 @@ class ArticleServiceTest : DatabaseSpec() {
         val unauthorizedUserId = createTestUser()
 
         val deleted = service.deleteArticle(article.slug, unauthorizedUserId)
-        assertFalse(deleted, "Deletion should fail for unauthorized user")
+        assertEquals(deleted, null, "Deletion should fail for unauthorized user")
 
         val retrievedArticle = service.getArticleBySlug(article.slug)
         assertNotNull(retrievedArticle, "Article should still exist")

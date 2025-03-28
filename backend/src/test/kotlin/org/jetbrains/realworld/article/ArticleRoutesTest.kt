@@ -159,7 +159,7 @@ class ArticleRoutesTest {
             bearerAuth(unauthorizedUser.token!!)
         }
 
-        assertEquals(HttpStatusCode.NotFound, deleteResponse.status)
+        assertEquals(HttpStatusCode.Forbidden, deleteResponse.status)
 
         val getResponse = get("/articles/${article.slug}") {
             contentType(ContentType.Application.Json)

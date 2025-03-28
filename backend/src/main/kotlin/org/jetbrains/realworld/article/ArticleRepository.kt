@@ -85,16 +85,9 @@ class ArticleRepository(
             .map { row ->
                 val articleId = row[Articles.id].value
 
-                val tags = ArticleTags
-                    .innerJoin(Tags) { ArticleTags.tagId eq Tags.id }
-                    .select(Tags.name)
-                    .where { ArticleTags.articleId eq articleId }
-                    .map { it[Tags.name] }
+                val tags = getTags(articleId)
 
-                val favoritesCount = Favorites
-                    .select(Favorites.userId)
-                    .where { Favorites.articleId eq articleId }
-                    .count()
+                val favoritesCount = getFavoritesCount(articleId)
 
                 val favorited = if (currentUserId != null) {
                     Favorites
@@ -141,36 +134,20 @@ class ArticleRepository(
             .map { row ->
                 val articleId = row[Articles.id].value
 
-                val tags = ArticleTags
-                    .innerJoin(Tags) { ArticleTags.tagId eq Tags.id }
-                    .select(Tags.name)
-                    .where { ArticleTags.articleId eq articleId }
-                    .map { it[Tags.name] }
+                val tags = getTags(articleId)
+                val favoritesCount = getFavoritesCount(articleId)
 
-                val favoritesCount = Favorites
-                    .select(Favorites.userId)
-                    .where { Favorites.articleId eq articleId }
-                    .count()
-
-                val favorited = Favorites
-                    .select(Favorites.userId)
-                    .where { (Favorites.articleId eq articleId) and (Favorites.userId eq currentUserId) }
-                    .count() > 0
+                val favorited = isFavorited(articleId, currentUserId)
 
                 val authorProfile = profileRepository.getProfileOrNull(row[Users.username], currentUserId)!!
-
-                val createdAt = row[Articles.createdAt]
-                val updatedAt = row[Articles.updatedAt]
-                println("GetFeed.CreatedAt: $createdAt")
-                println("GetFeed.UpdatedAt: $updatedAt")
 
                 ArticleWithoutBody(
                     slug = row[Articles.slug],
                     title = row[Articles.title],
                     description = row[Articles.description],
                     tagList = tags,
-                    createdAt = createdAt,
-                    updatedAt = updatedAt,
+                    createdAt = row[Articles.createdAt],
+                    updatedAt = row[Articles.updatedAt],
                     favorited = favorited,
                     favoritesCount = favoritesCount.toInt(),
                     author = authorProfile
@@ -273,17 +250,8 @@ class ArticleRepository(
             .singleOrNull() ?: return@transaction null
 
         val articleId = row[Articles.id].value
-
-        val tags = ArticleTags
-            .innerJoin(Tags) { ArticleTags.tagId eq Tags.id }
-            .select(Tags.name)
-            .where { ArticleTags.articleId eq articleId }
-            .map { it[Tags.name] }
-
-        val favoritesCount = Favorites
-            .select(Favorites.userId)
-            .where { Favorites.articleId eq articleId }
-            .count()
+        val tags = getTags(articleId)
+        val favoritesCount = getFavoritesCount(articleId)
 
         val favorited = if (currentUserId != null) {
             Favorites
@@ -308,15 +276,13 @@ class ArticleRepository(
         )
     }
 
-    fun deleteArticle(slug: String, authorId: Long): Boolean = transaction(database) {
+    fun deleteArticle(slug: String, authorId: Long): Boolean? = transaction(database) {
         val article = Articles
             .select(Articles.id, Articles.authorId)
             .where { Articles.slug eq slug }
             .singleOrNull() ?: return@transaction false
 
-        if (article[Articles.authorId].value != authorId) {
-            return@transaction false
-        }
+        if (article[Articles.authorId].value != authorId) return@transaction null
 
         val articleId = article[Articles.id].value
 
@@ -332,11 +298,7 @@ class ArticleRepository(
             .singleOrNull() ?: return@transaction null
 
         val articleId = article[Articles.id].value
-
-        val alreadyFavorited = Favorites
-            .select(Favorites.userId)
-            .where { (Favorites.articleId eq articleId) and (Favorites.userId eq userId) }
-            .count() > 0
+        val alreadyFavorited = isFavorited(articleId, userId)
 
         if (!alreadyFavorited) {
             Favorites.insert {
@@ -364,6 +326,23 @@ class ArticleRepository(
     fun allTags(): List<String> = transaction(database) {
         Tags.select(Tags.name).map { it[Tags.name] }
     }
+
+
+    private fun isFavorited(articleId: Long, currentUserId: Long): Boolean = Favorites
+        .select(Favorites.userId)
+        .where { (Favorites.articleId eq articleId) and (Favorites.userId eq currentUserId) }
+        .count() > 0
+
+    private fun getFavoritesCount(articleId: Long): Long = Favorites
+        .select(Favorites.userId)
+        .where { Favorites.articleId eq articleId }
+        .count()
+
+    private fun getTags(articleId: Long): List<String> = ArticleTags
+        .innerJoin(Tags) { ArticleTags.tagId eq Tags.id }
+        .select(Tags.name)
+        .where { ArticleTags.articleId eq articleId }
+        .map { it[Tags.name] }
 
     private fun generateSlug(title: String): String =
         title.lowercase()
