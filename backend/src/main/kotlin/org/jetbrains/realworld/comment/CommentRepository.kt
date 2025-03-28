@@ -6,16 +6,13 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.kotlin.datetime.timestampWithTimeZone
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.article.Articles
 import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Users
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-private object CommentsTable : LongIdTable("comments", "comment_id") {
+private object Comments : LongIdTable("comments", "comment_id") {
     val articleId = reference("article_id", Articles)
     val authorId = reference("author_id", Users)
     val body = text("body")
@@ -36,14 +33,14 @@ class CommentRepository(
             .singleOrNull()?.get(Articles.id)?.value
 
         if (articleId == null) null
-        else CommentsTable
-            .innerJoin(Users) { CommentsTable.authorId eq Users.id }
+        else Comments
+            .innerJoin(Users) { Comments.authorId eq Users.id }
             .select(
-                CommentsTable.id, CommentsTable.body, CommentsTable.createdAt, CommentsTable.updatedAt,
-                CommentsTable.authorId, Users.username
+                Comments.id, Comments.body, Comments.createdAt, Comments.updatedAt,
+                Comments.authorId, Users.username
             )
-            .where { CommentsTable.articleId eq articleId }
-            .orderBy(CommentsTable.createdAt, SortOrder.DESC)
+            .where { Comments.articleId eq articleId }
+            .orderBy(Comments.createdAt, SortOrder.DESC)
             .map { row -> row.toComment(currentUserId) }
     }
 
@@ -54,7 +51,7 @@ class CommentRepository(
             .singleOrNull()?.get(Articles.id)?.value ?: return@transaction null
 
         val now = Clock.System.now()
-        val commentId = CommentsTable.insertAndGetId {
+        val commentId = Comments.insertAndGetId {
             it[this.articleId] = articleId
             it[this.authorId] = authorId
             it[body] = newComment.body
@@ -78,16 +75,16 @@ class CommentRepository(
     }
 
     fun deleteComment(slug: String, commentId: Long, currentUserId: Long): Boolean = transaction(database) {
-        CommentsTable.deleteWhere { (CommentsTable.id eq commentId) and (CommentsTable.authorId eq currentUserId) } > 0
+        Comments.deleteWhere { (Comments.id eq commentId) and (Comments.authorId eq currentUserId) } > 0
     }
 
     private fun ResultRow.toComment(currentUserId: Long?): Comment {
         val authorProfile = profileRepository.getProfileOrNull(this[Users.username], currentUserId)!!
         return Comment(
-            id = this[CommentsTable.id].value,
-            body = this[CommentsTable.body],
-            createdAt = this[CommentsTable.createdAt],
-            updatedAt = this[CommentsTable.updatedAt],
+            id = this[Comments.id].value,
+            body = this[Comments.body],
+            createdAt = this[Comments.createdAt],
+            updatedAt = this[Comments.updatedAt],
             author = authorProfile
         )
     }

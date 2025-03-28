@@ -24,10 +24,6 @@ class ArticleListViewModel(private val client: HttpClient) : ViewModel() {
     private val _uiState = MutableStateFlow<ArticleListUiState>(Loading(emptyList()))
     val uiState: StateFlow<ArticleListUiState> = _uiState.asStateFlow()
 
-    init {
-        println("ArticleListViewModel.init")
-    }
-
     fun loadArticles() {
         _uiState.update { state ->
             when (state) {

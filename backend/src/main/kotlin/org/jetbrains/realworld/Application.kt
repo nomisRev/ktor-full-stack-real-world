@@ -25,7 +25,6 @@ import org.jetbrains.realworld.comment.commentRoutes
 fun main(args: Array<String>) =
     io.ktor.server.netty.EngineMain.main(args)
 
-
 fun Application.module() {
     val database = setupDatabase(DatabaseConfig.load(environment))
     install(CallLogging)

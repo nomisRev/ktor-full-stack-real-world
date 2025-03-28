@@ -32,6 +32,10 @@ fun App() {
         val listViewModel = ArticleListViewModel(client)
         val detailViewModel = ArticleDetailViewModel(client)
 
+        LaunchedEffect(Unit) {
+            listViewModel.loadArticles()
+        }
+
         RealWorldNavHost(listViewModel, detailViewModel)
     }
 }

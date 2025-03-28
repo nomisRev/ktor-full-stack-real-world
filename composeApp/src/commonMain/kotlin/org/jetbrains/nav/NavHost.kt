@@ -8,6 +8,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import org.jetbrains.detail.ArticleDetailContent
 import org.jetbrains.detail.ArticleDetailViewModel
 import org.jetbrains.home.ArticleListContent
@@ -34,7 +35,7 @@ fun RealWorldNavHost(
         }
 
         composable<ArticleDetail>(typeMap = mapOf(typeOf<Slug>() to SlugNavType)) { backStackEntry: NavBackStackEntry ->
-            val slug = TODO("")
+            val slug = backStackEntry.toRoute<ArticleDetail>().slug
             val uiState by detailViewModel.uiState.collectAsState()
 
             LaunchedEffect(slug) {
