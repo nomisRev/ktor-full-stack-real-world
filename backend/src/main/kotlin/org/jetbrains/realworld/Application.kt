@@ -5,6 +5,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.application.install
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.resources.*
@@ -27,6 +28,7 @@ fun main(args: Array<String>) =
 
 fun Application.module() {
     val database = setupDatabase(DatabaseConfig.load(environment))
+    install(CallLogging)
     install(ContentNegotiation) { json() }
     install(DefaultHeaders) { header(HttpHeaders.Server, "RealWorld Conduit API") }
     install(Resources)
