@@ -3,10 +3,11 @@ package org.jetbrains.realworld.comment
 import io.ktor.resources.Resource
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
+import org.jetbrains.realworld.Root
 import org.jetbrains.realworld.profile.Profile
 
 @Resource("/articles/{slug}/comments")
-class CommentsResource(val slug: String) {
+class CommentsResource(val slug: String, val root: Root = Root) {
     @Resource("{id}")
     class ById(val parent: CommentsResource, val id: Long)
 }

@@ -15,28 +15,27 @@ import org.jetbrains.realworld.error.GenericErrorModel
 import org.postgresql.util.PSQLState
 
 fun Route.userRoutes(userService: UserService) {
-    post<UsersResource> { _ ->
+    post<UsersResource> {
         val request = call.receive<NewUserRequest>()
-        try {
-            val user = userService.registerUser(request.user)
-            call.respond(HttpStatusCode.Created, UserResponse(user))
-        } catch (e: ExposedSQLException) {
-            if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) call.respond(
-                HttpStatusCode.UnprocessableEntity,
-                GenericErrorModel("email is already registered")
-            )
-            else throw e
-        }
+        val user = userService.registerUser(request.user)
+        if (user != null) call.respond(HttpStatusCode.Created, UserResponse(user))
+        else call.respond(HttpStatusCode.UnprocessableEntity, GenericErrorModel("email is already registered"))
     }
 
-    post<UsersResource.Login> { _ ->
+    post<UsersResource.Login> {
         val request = call.receive<UserLoginRequest>()
-        val user = userService.loginUserOrNull(request.user)
-        if (user != null) call.respond(HttpStatusCode.OK, UserResponse(user))
-        else call.respond(
-            HttpStatusCode.UnprocessableEntity,
-            GenericErrorModel("email or password is invalid")
-        )
+        when (val result = userService.loginUser(request.user)) {
+            is UserService.LoginResult.Success -> call.respond(HttpStatusCode.OK, UserResponse(result.user))
+            is UserService.LoginResult.UserNotFound -> call.respond(
+                HttpStatusCode.UnprocessableEntity,
+                GenericErrorModel("email or password is invalid")
+            )
+
+            is UserService.LoginResult.InvalidCredentials -> call.respond(
+                HttpStatusCode.UnprocessableEntity,
+                GenericErrorModel("email or password is invalid")
+            )
+        }
     }
 
     authenticate {

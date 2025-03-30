@@ -35,6 +35,7 @@ fun Application.configureAuthentication(config: JwtConfig, users: UserService): 
     authentication {
         jwt {
             realm = config.realm
+            authSchemes("Bearer", "Token")
             verifier(
                 JWT
                     .require(Algorithm.HMAC256(config.secret))

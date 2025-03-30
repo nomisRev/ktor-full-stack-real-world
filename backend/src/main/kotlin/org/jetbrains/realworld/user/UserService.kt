@@ -4,15 +4,13 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
-import org.jetbrains.exposed.sql.kotlin.datetime.time
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.kotlin.datetime.timestampWithTimeZone
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.realworld.JwtConfig
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import org.postgresql.util.PSQLState
 import java.util.Date
 
 object Users : LongIdTable("users", "user_id") {
@@ -32,25 +30,30 @@ class UserService(
     private val database: Database,
     private val hasher: Argon2Hasher
 ) {
-    suspend fun registerUser(registration: NewUser): User {
+    suspend fun registerUser(registration: NewUser): User? {
         val res = hasher.encrypt(registration.password)
-        val userId = transaction(database) {
-            Users.insertAndGetId {
-                it[email] = registration.email
-                it[username] = registration.username
-                it[password] = res.hash
-                it[salt] = res.salt
-            }.value
+        val userId = try {
+            transaction(database) {
+                Users.insertAndGetId {
+                    it[email] = registration.email
+                    it[username] = registration.username
+                    it[password] = res.hash
+                    it[salt] = res.salt
+                }.value
+            }
+        } catch (e: ExposedSQLException) {
+            if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) null
+            else throw e
         }
-        val newToken = createAndUpdateToken(userId)
-        return User(
+        return if (userId == null) null
+        else User(
             email = registration.email,
             username = registration.username,
-            token = newToken
+            token = createAndUpdateToken(userId)
         )
     }
 
-    private class LoginResult(
+    private class UserCredentials(
         val userId: Long,
         val email: String,
         val username: String,
@@ -60,33 +63,42 @@ class UserService(
         val password: ByteArray,
     )
 
-    suspend fun loginUserOrNull(login: UserLogin): User? {
-        val result = transaction(database) {
-            val row =
-                Users.select(Users.id, Users.email, Users.username, Users.bio, Users.image, Users.salt, Users.password)
-                    .where { Users.email eq login.email }
-                    .single()
-            LoginResult(
-                userId = row[Users.id].value,
-                email = row[Users.email],
-                username = row[Users.username],
-                bio = row.getOrNull(Users.bio),
-                image = row.getOrNull(Users.image),
-                salt = row[Users.salt],
-                password = row[Users.password]
-            )
-        }
-        val success = hasher.verify(login.password, result.salt, result.password)
+    sealed class LoginResult {
+        data class Success(val user: User) : LoginResult()
+        object UserNotFound : LoginResult()
+        object InvalidCredentials : LoginResult()
+    }
+
+    suspend fun loginUser(login: UserLogin): LoginResult {
+        val credentials = transaction(database) {
+            Users.select(Users.id, Users.email, Users.username, Users.bio, Users.image, Users.salt, Users.password)
+                .where { Users.email eq login.email }
+                .singleOrNull()?.let { row ->
+                    UserCredentials(
+                        userId = row[Users.id].value,
+                        email = row[Users.email],
+                        username = row[Users.username],
+                        bio = row.getOrNull(Users.bio),
+                        image = row.getOrNull(Users.image),
+                        salt = row[Users.salt],
+                        password = row[Users.password]
+                    )
+                }
+        } ?: return LoginResult.UserNotFound
+
+        val success = hasher.verify(login.password, credentials.salt, credentials.password)
         return if (success) {
-            val newToken = createAndUpdateToken(result.userId)
-            User(
-                email = result.email,
-                username = result.username,
-                bio = result.bio,
-                image = result.image,
-                token = newToken
+            val newToken = createAndUpdateToken(credentials.userId)
+            LoginResult.Success(
+                User(
+                    email = credentials.email,
+                    username = credentials.username,
+                    bio = credentials.bio,
+                    image = credentials.image,
+                    token = newToken
+                )
             )
-        } else null
+        } else LoginResult.InvalidCredentials
     }
 
     fun getUserOrNull(userId: Long): User? = transaction(database) {

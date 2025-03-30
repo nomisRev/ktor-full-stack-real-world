@@ -2,15 +2,16 @@ package org.jetbrains.realworld.user
 
 import io.ktor.resources.Resource
 import kotlinx.serialization.Serializable
+import org.jetbrains.realworld.Root
 
 @Resource("/users")
-class UsersResource {
+class UsersResource(val root: Root = Root) {
     @Resource("login")
     class Login(val parent: UsersResource)
 }
 
 @Resource("/user")
-class UserResource
+class UserResource(val root: Root = Root)
 
 @Serializable
 data class User(

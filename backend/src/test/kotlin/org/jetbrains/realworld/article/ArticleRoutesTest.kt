@@ -22,7 +22,7 @@ class ArticleRoutesTest {
             tagList = listOf("test", "article")
         )
 
-        val response = post("/articles") {
+        val response = post("/api/articles") {
             contentType(ContentType.Application.Json)
             bearerAuth(user.token!!)
             setBody(NewArticleRequest(newArticle))
@@ -48,7 +48,7 @@ class ArticleRoutesTest {
             listOf("test", "get")
         )
 
-        val response = get("/articles/${article.slug}") {
+        val response = get("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
         }
 
@@ -63,7 +63,7 @@ class ArticleRoutesTest {
 
     @Test
     fun testGetNonExistentArticle() = withApp {
-        val response = get("/articles/non-existent-slug") {
+        val response = get("/api/articles/non-existent-slug") {
             contentType(ContentType.Application.Json)
         }
 
@@ -86,7 +86,7 @@ class ArticleRoutesTest {
             description = "Updated Description",
             body = "Updated Body"
         )
-        val response = put("/articles/${article.slug}") {
+        val response = put("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
             bearerAuth(user.token!!)
             setBody(UpdateArticleRequest(updateArticle))
@@ -111,7 +111,7 @@ class ArticleRoutesTest {
         )
 
         val updateArticle = UpdateArticle(title = "Unauthorized Update")
-        val response = put("/articles/${article.slug}") {
+        val response = put("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
             bearerAuth(unauthorizedUser.token!!)
             setBody(UpdateArticleRequest(updateArticle))
@@ -130,14 +130,14 @@ class ArticleRoutesTest {
             "Test Body"
         )
 
-        val deleteResponse = delete("/articles/${article.slug}") {
+        val deleteResponse = delete("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
             bearerAuth(user.token!!)
         }
 
         assertEquals(HttpStatusCode.NoContent, deleteResponse.status)
 
-        val getResponse = get("/articles/${article.slug}") {
+        val getResponse = get("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
         }
         assertEquals(HttpStatusCode.NotFound, getResponse.status)
@@ -154,14 +154,14 @@ class ArticleRoutesTest {
             "Test Body"
         )
 
-        val deleteResponse = delete("/articles/${article.slug}") {
+        val deleteResponse = delete("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
             bearerAuth(unauthorizedUser.token!!)
         }
 
         assertEquals(HttpStatusCode.Forbidden, deleteResponse.status)
 
-        val getResponse = get("/articles/${article.slug}") {
+        val getResponse = get("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
         }
         assertEquals(HttpStatusCode.OK, getResponse.status)
@@ -174,7 +174,7 @@ class ArticleRoutesTest {
         createArticle(user, "Article 1", tagList = listOf("tag1", "tag2"))
         createArticle(user, "Article 2", tagList = listOf("tag2", "tag3"))
 
-        val response = get("/articles") {
+        val response = get("/api/articles") {
             contentType(ContentType.Application.Json)
         }
 
@@ -183,7 +183,7 @@ class ArticleRoutesTest {
         assertTrue(articles.articles.isNotEmpty(), "Should return articles")
         assertTrue(articles.articlesCount > 0, "Articles count should be greater than 0")
 
-        val tagResponse = get("/articles?tag=tag1") {
+        val tagResponse = get("/api/articles?tag=tag1") {
             contentType(ContentType.Application.Json)
         }
 
@@ -191,7 +191,7 @@ class ArticleRoutesTest {
         val tagArticles = tagResponse.body<MultipleArticlesResponse>()
         assertTrue(tagArticles.articles.isNotEmpty(), "Should return articles with tag1")
 
-        val authorResponse = get("/articles?author=${user.username}") {
+        val authorResponse = get("/api/articles?author=${user.username}") {
             contentType(ContentType.Application.Json)
         }
 
@@ -199,13 +199,39 @@ class ArticleRoutesTest {
         val authorArticles = authorResponse.body<MultipleArticlesResponse>()
         assertTrue(authorArticles.articles.isNotEmpty(), "Should return articles by author")
 
-        val paginationResponse = get("/articles?limit=1") {
+        val paginationResponse = get("/api/articles?limit=1") {
             contentType(ContentType.Application.Json)
         }
 
         assertEquals(HttpStatusCode.OK, paginationResponse.status)
         val paginatedArticles = paginationResponse.body<MultipleArticlesResponse>()
         assertEquals(1, paginatedArticles.articles.size, "Should return exactly 1 article")
+    }
+
+    @Test
+    fun testTagOrder() = withApp {
+        val user = createUser(newTestUser())
+
+        // Create an article with multiple tags, with "dragons" not as the first tag
+        val article = createArticle(user, "Dragon Training Article", tagList = listOf("training", "dragons"))
+
+        // Retrieve the article by the "dragons" tag
+        val response = get("/api/articles?tag=dragons") {
+            contentType(ContentType.Application.Json)
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val articles = response.body<MultipleArticlesResponse>()
+        assertTrue(articles.articles.isNotEmpty(), "Should return articles with dragons tag")
+
+        // Verify that the first tag is "dragons"
+        val firstArticle = articles.articles.first()
+        assertTrue(firstArticle.tagList.isNotEmpty(), "Article should have tags")
+        assertEquals("dragons", firstArticle.tagList.first(), "First tag should be 'dragons'")
+
+        // Verify that the second tag is "training"
+        assertTrue(firstArticle.tagList.size >= 2, "Article should have at least 2 tags")
+        assertEquals("training", firstArticle.tagList[1], "Second tag should be 'training'")
     }
 
     @Test
@@ -224,7 +250,7 @@ class ArticleRoutesTest {
         val otherUser = createUser(newTestUser())
         createArticle(otherUser, "Other Article")
 
-        val response = get("/articles/feed") {
+        val response = get("/api/articles/feed") {
             contentType(ContentType.Application.Json)
             bearerAuth(follower.token!!)
         }
@@ -234,7 +260,7 @@ class ArticleRoutesTest {
         assertEquals(2, feed.articles.size, "Should return 2 articles from followed user")
         assertEquals(2, feed.articlesCount, "Articles count should be 2")
 
-        val paginationResponse = get("/articles/feed?limit=1") {
+        val paginationResponse = get("/api/articles/feed?limit=1") {
             contentType(ContentType.Application.Json)
             bearerAuth(follower.token!!)
         }

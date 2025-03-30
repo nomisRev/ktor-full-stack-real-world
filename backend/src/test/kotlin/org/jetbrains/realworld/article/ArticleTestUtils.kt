@@ -17,7 +17,7 @@ suspend fun HttpClient.createArticle(
     tagList: List<String> = emptyList()
 ): Article {
     val newArticle = NewArticle(title, description, body, tagList)
-    val response = post("/articles") {
+    val response = post("/api/articles") {
         contentType(ContentType.Application.Json)
         bearerAuth(user.token!!)
         setBody(NewArticleRequest(newArticle))

@@ -31,7 +31,7 @@ class TagRoutesTest {
         createArticle(user, "Article with tag3", tagList = listOf(tag3))
 
         // Test the /tags endpoint
-        val response = get("/tags") {
+        val response = get("/api/tags") {
             contentType(ContentType.Application.Json)
         }
 

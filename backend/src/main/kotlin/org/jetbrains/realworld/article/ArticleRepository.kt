@@ -86,6 +86,7 @@ class ArticleRepository(
                 val articleId = row[Articles.id].value
 
                 val tags = getTags(articleId)
+                    .sortedWith { a, b -> if (a == tag) -1 else 1 }
 
                 val favoritesCount = getFavoritesCount(articleId)
 

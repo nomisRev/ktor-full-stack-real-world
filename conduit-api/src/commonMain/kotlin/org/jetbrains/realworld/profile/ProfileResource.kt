@@ -2,9 +2,10 @@ package org.jetbrains.realworld.profile
 
 import io.ktor.resources.Resource
 import kotlinx.serialization.Serializable
+import org.jetbrains.realworld.Root
 
 @Resource("/profiles/{username}")
-data class ProfileResource(val username: String) {
+data class ProfileResource(val username: String, val root: Root = Root) {
     @Resource("follow")
     data class Follow(val parent: ProfileResource)
 }

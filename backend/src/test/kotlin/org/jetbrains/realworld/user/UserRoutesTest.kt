@@ -12,7 +12,7 @@ class UserRoutesTest {
     @Test
     fun testUserRegistration() = withApp {
         val user = newTestUser()
-        val response = post("/users") {
+        val response = post("/api/users") {
             contentType(ContentType.Application.Json)
             setBody(NewUserRequest(user))
         }
@@ -29,7 +29,7 @@ class UserRoutesTest {
         val newUser = newTestUser()
         val user = createUser(newUser)
 
-        val response = post("/users/login") {
+        val response = post("/api/users/login") {
             contentType(ContentType.Application.Json)
             setBody(UserLoginRequest(UserLogin(user.email, newUser.password)))
         }
@@ -45,9 +45,9 @@ class UserRoutesTest {
     fun testGetCurrentUser() = withApp {
         val user = createUser(newTestUser())
 
-        val response = get("/user") {
+        val response = get("/api/user") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            header("Authorization", "Token ${user.token!!}")
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -67,9 +67,9 @@ class UserRoutesTest {
             bio = "This is my updated bio",
             email = "updated@example.com"
         )
-        val response = put("/user") {
+        val response = put("/api/user") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            header("Authorization", "Token ${user.token!!}")
             setBody(UserUpdateRequest(update))
         }
 
@@ -83,7 +83,7 @@ class UserRoutesTest {
     @Test
     fun testInvalidRegistration() = withApp {
         val invalidUser = NewUser(username = "", email = "invalid-email", password = "short")
-        val registerResponse = post("/users") {
+        val registerResponse = post("/api/users") {
             contentType(ContentType.Application.Json)
             setBody(NewUserRequest(invalidUser))
         }
@@ -95,7 +95,7 @@ class UserRoutesTest {
         val newUser = newTestUser()
         createUser(newUser)
 
-        val duplicateResponse = post("/users") {
+        val duplicateResponse = post("/api/users") {
             contentType(ContentType.Application.Json)
             setBody(NewUserRequest(newUser))
         }
