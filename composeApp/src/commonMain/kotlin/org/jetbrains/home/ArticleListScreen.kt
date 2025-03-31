@@ -16,13 +16,20 @@ import org.jetbrains.realworld.article.ArticleWithoutBody
 fun ArticleListContent(
     uiState: ArticleListUiState,
     onRefresh: () -> Unit,
-    onArticleClick: (ArticleWithoutBody) -> Unit
+    onArticleClick: (ArticleWithoutBody) -> Unit,
+    isAuthenticated: Boolean,
+    onLoginClick: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Articles") },
                 actions = {
+                    if (!isAuthenticated) {
+                        TextButton(onClick = onLoginClick) {
+                            Text("Login", color = MaterialTheme.colors.onPrimary)
+                        }
+                    }
                     IconButton(onClick = onRefresh) {
                         // TODO Refresh icon should go here
                         Text("Refresh")

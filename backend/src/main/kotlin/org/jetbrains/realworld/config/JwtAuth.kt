@@ -7,6 +7,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.respond
+import org.jetbrains.realworld.error.GenericErrorModel
 import org.jetbrains.realworld.user.User
 import org.jetbrains.realworld.user.UserService
 import java.util.*
@@ -36,24 +37,28 @@ fun Application.configureAuthentication(config: JwtConfig, users: UserService): 
         jwt {
             realm = config.realm
             authSchemes("Token")
-            verifier(JWT
-                .require(Algorithm.HMAC256(config.secret))
-                .withIssuer(config.issuer)
-                .withAudience(config.audience)
-                .build()
+            verifier(
+                JWT
+                    .require(Algorithm.HMAC256(config.secret))
+                    .withIssuer(config.issuer)
+                    .withAudience(config.audience)
+                    .build()
             )
             validate { credential ->
                 val now = Date()
                 val expired = credential.expiresAt?.before(now) == true
                 val userId = credential.getClaim("user_id", Long::class)
                 when {
-                    userId == null -> respond(HttpStatusCode.Unauthorized, "Invalid token")
-                    expired -> respond(HttpStatusCode.Unauthorized, "Token has expired")
+                    userId == null -> respond(HttpStatusCode.Unauthorized, GenericErrorModel("Invalid token"))
+                    expired -> respond(HttpStatusCode.Unauthorized, GenericErrorModel("Token has expired"))
                     else -> when (val user = users.getUserOrNull(userId)) {
-                        null -> respond(HttpStatusCode.Unauthorized, "User doesn't exist")
+                        null -> respond(HttpStatusCode.Unauthorized, GenericErrorModel("User doesn't exist"))
                         else -> UserJWT(userId, user)
                     }
                 }
+            }
+            challenge { defaultScheme: String, realm: String ->
+                call.respond(HttpStatusCode.Unauthorized, GenericErrorModel("Token is missing, or invalid"))
             }
         }
     }

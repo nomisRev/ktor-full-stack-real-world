@@ -34,3 +34,11 @@ data object RegisterContent
 @Serializable
 @SerialName("Login")
 data object LoginContent
+
+@Serializable
+@SerialName("Feed")
+data object FeedContent
+
+@Serializable
+@SerialName("Profile")
+data object ProfileContent

@@ -11,8 +11,10 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.auth.AuthViewModel
 import org.jetbrains.detail.ArticleDetailViewModel
+import org.jetbrains.feed.FeedViewModel
 import org.jetbrains.home.ArticleListViewModel
 import org.jetbrains.nav.RealWorldNavHost
+import org.jetbrains.profile.ProfileViewModel
 
 @Composable
 @Preview
@@ -33,7 +35,15 @@ fun App() {
         val listViewModel = ArticleListViewModel(client)
         val detailViewModel = ArticleDetailViewModel(client)
         val authViewModel = AuthViewModel(client)
+        val feedViewModel = FeedViewModel(client)
+        val profileViewModel = ProfileViewModel(client)
 
-        RealWorldNavHost(listViewModel, detailViewModel, authViewModel)
+        RealWorldNavHost(
+            listViewModel = listViewModel,
+            detailViewModel = detailViewModel,
+            authViewModel = authViewModel,
+            feedViewModel = feedViewModel,
+            profileViewModel = profileViewModel
+        )
     }
 }

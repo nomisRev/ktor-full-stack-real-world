@@ -21,4 +21,8 @@ class AuthViewModel(private val client: HttpClient) : ViewModel() {
             _isAuthenticated.value = true
         }
     }
+
+    fun logout() {
+        _isAuthenticated.value = false
+    }
 }
