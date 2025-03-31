@@ -49,7 +49,8 @@ class ProfileServiceTest : DatabaseSpec() {
 
     @Test
     fun testGetProfile() = runBlocking {
-        val username = "testuser"
+        val random = Uuid.random()
+        val username = "user-$random"
         val bio = "Test bio"
         val image = "https://example.com/image.jpg"
 

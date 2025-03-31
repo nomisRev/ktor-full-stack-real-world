@@ -117,10 +117,11 @@ class ArticleRepository(
 
     fun getFeed(
         currentUserId: Long,
-        limit: Int = 20,
-        offset: Int = 0
+        limit: Int,
+        offset: Int
     ): MultipleArticlesResponse = transaction(database) {
-        val following = Follows.select(Follows.followedId).where { Follows.followerId eq currentUserId }
+        val following = Follows.select(Follows.followedId)
+            .where { Follows.followerId eq currentUserId }
 
         val query = Articles
             .innerJoin(Users) { Articles.authorId eq Users.id }

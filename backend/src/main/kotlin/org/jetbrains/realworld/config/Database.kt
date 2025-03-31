@@ -1,4 +1,4 @@
-package org.jetbrains.realworld
+package org.jetbrains.realworld.config
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -69,7 +69,6 @@ fun dataSource(config: DatabaseConfig): HikariDataSource =
         addDataSourceProperty("prepStmtCacheSize", config.prepStmtCacheSize.toString())
         addDataSourceProperty("prepStmtCacheSqlLimit", config.prepStmtCacheSqlLimit.toString())
     })
-
 
 fun migrate(dataSource: HikariDataSource, config: DatabaseConfig): MigrateResult =
     Flyway.configure()

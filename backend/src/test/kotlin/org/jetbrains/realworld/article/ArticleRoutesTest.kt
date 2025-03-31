@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
+import org.jetbrains.realworld.tokenAuth
 import org.jetbrains.realworld.user.User
 import org.jetbrains.realworld.user.createUser
 import org.jetbrains.realworld.user.newTestUser
@@ -24,7 +25,7 @@ class ArticleRoutesTest {
 
         val response = post("/api/articles") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            tokenAuth(user.token!!)
             setBody(NewArticleRequest(newArticle))
         }
 
@@ -88,7 +89,7 @@ class ArticleRoutesTest {
         )
         val response = put("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            tokenAuth(user.token!!)
             setBody(UpdateArticleRequest(updateArticle))
         }
 
@@ -113,7 +114,7 @@ class ArticleRoutesTest {
         val updateArticle = UpdateArticle(title = "Unauthorized Update")
         val response = put("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
-            bearerAuth(unauthorizedUser.token!!)
+            tokenAuth(unauthorizedUser.token!!)
             setBody(UpdateArticleRequest(updateArticle))
         }
 
@@ -132,7 +133,7 @@ class ArticleRoutesTest {
 
         val deleteResponse = delete("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            tokenAuth(user.token!!)
         }
 
         assertEquals(HttpStatusCode.NoContent, deleteResponse.status)
@@ -156,7 +157,7 @@ class ArticleRoutesTest {
 
         val deleteResponse = delete("/api/articles/${article.slug}") {
             contentType(ContentType.Application.Json)
-            bearerAuth(unauthorizedUser.token!!)
+            tokenAuth(unauthorizedUser.token!!)
         }
 
         assertEquals(HttpStatusCode.Forbidden, deleteResponse.status)
@@ -239,9 +240,9 @@ class ArticleRoutesTest {
         val follower = createUser(newTestUser())
         val followed = createUser(newTestUser())
 
-        post("/profiles/${followed.username}/follow") {
+        val r = post("api/profiles/${followed.username}/follow") {
             contentType(ContentType.Application.Json)
-            bearerAuth(follower.token!!)
+            tokenAuth(follower.token!!)
         }
 
         createArticle(followed, "Feed Article 1")
@@ -252,7 +253,7 @@ class ArticleRoutesTest {
 
         val response = get("/api/articles/feed") {
             contentType(ContentType.Application.Json)
-            bearerAuth(follower.token!!)
+            tokenAuth(follower.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -262,7 +263,7 @@ class ArticleRoutesTest {
 
         val paginationResponse = get("/api/articles/feed?limit=1") {
             contentType(ContentType.Application.Json)
-            bearerAuth(follower.token!!)
+            tokenAuth(follower.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, paginationResponse.status)

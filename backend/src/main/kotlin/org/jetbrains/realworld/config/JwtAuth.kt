@@ -1,4 +1,4 @@
-package org.jetbrains.realworld
+package org.jetbrains.realworld.config
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
@@ -35,13 +35,12 @@ fun Application.configureAuthentication(config: JwtConfig, users: UserService): 
     authentication {
         jwt {
             realm = config.realm
-            authSchemes("Bearer", "Token")
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC256(config.secret))
-                    .withIssuer(config.issuer)
-                    .withAudience(config.audience)
-                    .build()
+            authSchemes("Token")
+            verifier(JWT
+                .require(Algorithm.HMAC256(config.secret))
+                .withIssuer(config.issuer)
+                .withAudience(config.audience)
+                .build()
             )
             validate { credential ->
                 val now = Date()

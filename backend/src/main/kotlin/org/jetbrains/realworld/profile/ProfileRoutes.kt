@@ -8,13 +8,14 @@ import io.ktor.server.resources.get
 import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import org.jetbrains.realworld.UserJWT
+import org.jetbrains.realworld.config.UserJWT
 import org.jetbrains.realworld.error.GenericErrorModel
 
 fun Route.profileRoutes(profileRepository: ProfileRepository) {
     authenticate(optional = true) {
         get<ProfileResource> { resource ->
             val currentUser = call.principal<UserJWT>()
+
             val profile = profileRepository.getProfileOrNull(resource.username, currentUser?.userId)
 
             if (profile != null) call.respond(HttpStatusCode.OK, ProfileResponse(profile))
@@ -24,11 +25,7 @@ fun Route.profileRoutes(profileRepository: ProfileRepository) {
 
     authenticate {
         post<ProfileResource.Follow> { resource ->
-            val currentUser = call.principal<UserJWT>()
-            if (currentUser == null) {
-                call.respond(HttpStatusCode.Unauthorized, GenericErrorModel("authorization is required"))
-                return@post
-            }
+            val currentUser = call.principal<UserJWT>()!!
 
             val profile = profileRepository.followUser(resource.parent.username, currentUser.userId)
 
@@ -41,6 +38,7 @@ fun Route.profileRoutes(profileRepository: ProfileRepository) {
 
         delete<ProfileResource.Follow> { resource ->
             val currentUser = call.principal<UserJWT>()!!
+
             val profile = profileRepository.unfollowUser(resource.parent.username, currentUser.userId)
 
             if (profile != null) call.respond(HttpStatusCode.OK, ProfileResponse(profile))

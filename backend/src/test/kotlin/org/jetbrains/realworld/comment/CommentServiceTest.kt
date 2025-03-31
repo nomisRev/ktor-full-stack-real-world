@@ -111,7 +111,7 @@ class CommentServiceTest : DatabaseSpec() {
         val slug = createTestArticle(authorId)
         val comment = createTestComment(slug, authorId)
 
-        val success = commentRepository.deleteComment(slug, comment.id, authorId)
+        val success = commentRepository.deleteComment(comment.id, authorId)
 
         assertTrue(success, "Comment should be deleted")
 
@@ -127,7 +127,7 @@ class CommentServiceTest : DatabaseSpec() {
         val slug = createTestArticle(authorId)
         val comment = createTestComment(slug, authorId)
 
-        val success = commentRepository.deleteComment(slug, comment.id, unauthorizedUserId)
+        val success = commentRepository.deleteComment(comment.id, unauthorizedUserId)
 
         assertFalse(success, "Unauthorized user should not be able to delete comment")
 

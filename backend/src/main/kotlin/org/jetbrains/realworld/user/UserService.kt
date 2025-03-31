@@ -9,7 +9,10 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.realworld.JwtConfig
+import org.jetbrains.realworld.config.JwtConfig
+import org.jetbrains.realworld.user.UserService.LoginResult.InvalidCredentials
+import org.jetbrains.realworld.user.UserService.LoginResult.Success
+import org.jetbrains.realworld.user.UserService.LoginResult.UserNotFound
 import org.postgresql.util.PSQLState
 import java.util.Date
 
@@ -32,25 +35,25 @@ class UserService(
 ) {
     suspend fun registerUser(registration: NewUser): User? {
         val res = hasher.encrypt(registration.password)
-        val userId = try {
-            transaction(database) {
+        return transaction(database) {
+            val userId = try {
                 Users.insertAndGetId {
                     it[email] = registration.email
                     it[username] = registration.username
                     it[password] = res.hash
                     it[salt] = res.salt
                 }.value
+            } catch (e: ExposedSQLException) {
+                if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) null
+                else throw e
             }
-        } catch (e: ExposedSQLException) {
-            if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) null
-            else throw e
+            if (userId == null) null
+            else User(
+                email = registration.email,
+                username = registration.username,
+                token = createAndUpdateToken(userId)
+            )
         }
-        return if (userId == null) null
-        else User(
-            email = registration.email,
-            username = registration.username,
-            token = createAndUpdateToken(userId)
-        )
     }
 
     private class UserCredentials(
@@ -69,6 +72,9 @@ class UserService(
         object InvalidCredentials : LoginResult()
     }
 
+    /**
+     * Trying to login can result in [LoginResult.Success], [LoginResult.UserNotFound] or [LoginResult.InvalidCredentials].
+     */
     suspend fun loginUser(login: UserLogin): LoginResult {
         val credentials = transaction(database) {
             Users.select(Users.id, Users.email, Users.username, Users.bio, Users.image, Users.salt, Users.password)
@@ -84,12 +90,12 @@ class UserService(
                         password = row[Users.password]
                     )
                 }
-        } ?: return LoginResult.UserNotFound
+        } ?: return UserNotFound
 
         val success = hasher.verify(login.password, credentials.salt, credentials.password)
         return if (success) {
-            val newToken = createAndUpdateToken(credentials.userId)
-            LoginResult.Success(
+            val newToken = transaction(database) { createAndUpdateToken(credentials.userId) }
+            Success(
                 User(
                     email = credentials.email,
                     username = credentials.username,
@@ -98,7 +104,7 @@ class UserService(
                     token = newToken
                 )
             )
-        } else LoginResult.InvalidCredentials
+        } else InvalidCredentials
     }
 
     fun getUserOrNull(userId: Long): User? = transaction(database) {
@@ -113,7 +119,10 @@ class UserService(
         val newToken = if (result != null) createToken(userId) else null
         val hasUpdate =
             update.email != null || update.username != null || update.bio != null || update.image != null || update.password != null
-        return transaction(database) {
+
+        // TODO detect proper errors. Username or email violation.
+        return if (!hasUpdate) getUserOrNull(userId)
+        else transaction(database) {
             Users.updateReturning(
                 listOf(Users.id, Users.username, Users.email, Users.bio, Users.image, Users.token),
                 { Users.id eq userId }
@@ -127,7 +136,7 @@ class UserService(
                     row[password] = result.hash
                     row[token] = newToken
                 }
-                if (hasUpdate) row[updatedAt] = Clock.System.now()
+                row[updatedAt] = Clock.System.now()
             }.singleOrNull()?.toUser()
         }
     }
@@ -142,10 +151,8 @@ class UserService(
 
     private fun createAndUpdateToken(userId: Long): String {
         val newToken = createToken(userId)
-        transaction(database) {
-            Users.update({ Users.id eq userId }) {
-                it[token] = newToken
-            }
+        Users.update({ Users.id eq userId }) {
+            it[token] = newToken
         }
         return newToken
     }

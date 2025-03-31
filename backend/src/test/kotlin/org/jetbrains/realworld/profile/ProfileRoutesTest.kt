@@ -11,6 +11,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.path
+import org.jetbrains.realworld.tokenAuth
 import org.jetbrains.realworld.user.createUser
 import org.jetbrains.realworld.user.newTestUser
 import org.jetbrains.realworld.withApp
@@ -24,9 +25,9 @@ class ProfileRoutesTest {
     fun testGetProfile() = withApp {
         val user = createUser(newTestUser())
 
-        val response = get("/profiles/${user.username}") {
+        val response = get("/api/profiles/${user.username}") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            tokenAuth(user.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -39,7 +40,7 @@ class ProfileRoutesTest {
 
     @Test
     fun testGetNonExistentProfile() = withApp {
-        val response = get("/profiles/nonexistent") {
+        val response = get("/api/profiles/nonexistent") {
             contentType(ContentType.Application.Json)
         }
 
@@ -51,18 +52,18 @@ class ProfileRoutesTest {
         val follower = createUser(newTestUser())
         val followed = createUser(newTestUser())
 
-        val initialResponse = get("/profiles/${followed.username}") {
+        val initialResponse = get("/api/profiles/${followed.username}") {
             contentType(ContentType.Application.Json)
-            bearerAuth(follower.token!!)
+            tokenAuth(follower.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, initialResponse.status)
         val initialProfile = initialResponse.body<ProfileResponse>().profile
         assertEquals(followed.username, initialProfile.username)
 
-        val followResponse = post("/profiles/${followed.username}/follow") {
+        val followResponse = post("/api/profiles/${followed.username}/follow") {
             contentType(ContentType.Application.Json)
-            bearerAuth(follower.token!!)
+            tokenAuth(follower.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, followResponse.status)
@@ -77,9 +78,9 @@ class ProfileRoutesTest {
         val user1 = createUser(newTestUser())
         val user2 = createUser(newTestUser())
 
-        val followResponse = post("/profiles/${user2.username}/follow") {
+        val followResponse = post("/api/profiles/${user2.username}/follow") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user1.token!!)
+            tokenAuth(user1.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, followResponse.status)
@@ -89,9 +90,9 @@ class ProfileRoutesTest {
     fun testFollowNonExistentUser() = withApp {
         val user = createUser(newTestUser())
 
-        val response = post("/profiles/nonexistent/follow") {
+        val response = post("/api/profiles/nonexistent/follow") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            tokenAuth(user.token!!)
         }
 
         assertEquals(HttpStatusCode.NotFound, response.status)
@@ -104,9 +105,9 @@ class ProfileRoutesTest {
 
         followUser(followed.username, follower.token!!)
 
-        val response = delete("/profiles/${followed.username}/follow") {
+        val response = delete("/api/profiles/${followed.username}/follow") {
             contentType(ContentType.Application.Json)
-            bearerAuth(follower.token!!)
+            tokenAuth(follower.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -114,9 +115,9 @@ class ProfileRoutesTest {
         assertEquals(followed.username, profile.username)
         assertFalse(profile.following)
 
-        val getResponse = get("/profiles/${followed.username}") {
+        val getResponse = get("/api/profiles/${followed.username}") {
             contentType(ContentType.Application.Json)
-            bearerAuth(follower.token!!)
+            tokenAuth(follower.token!!)
         }
 
         assertEquals(HttpStatusCode.OK, getResponse.status)
@@ -128,9 +129,9 @@ class ProfileRoutesTest {
     fun testUnfollowNonExistentUser() = withApp {
         val user = createUser(newTestUser())
 
-        val response = delete("/profiles/nonexistent/follow") {
+        val response = delete("/api/profiles/nonexistent/follow") {
             contentType(ContentType.Application.Json)
-            bearerAuth(user.token!!)
+            tokenAuth(user.token!!)
         }
 
         assertEquals(HttpStatusCode.NotFound, response.status)
@@ -139,10 +140,10 @@ class ProfileRoutesTest {
     @Test
     fun testUnauthenticatedFollow() = withApp {
         val user = createUser(newTestUser())
-        val response = post("/profiles/${user.username}/follow") {
-            url { path("profiles", user.username, "follow") }
+        val response = post {
+            url { path("api", "profiles", user.username, "follow") }
             contentType(ContentType.Application.Json)
-            bearerAuth("invalid-token")
+            tokenAuth("invalid-token")
         }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)

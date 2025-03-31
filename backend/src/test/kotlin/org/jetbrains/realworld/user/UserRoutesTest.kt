@@ -6,6 +6,8 @@ import io.ktor.http.*
 import kotlinx.coroutines.delay
 import org.jetbrains.realworld.withApp
 import kotlin.test.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class UserRoutesTest {
 
@@ -59,13 +61,15 @@ class UserRoutesTest {
         assertEquals(user.image, currentUser.image)
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     @Test
     fun testUpdateUser() = withApp {
         val user = createUser(newTestUser())
+        val random = Uuid.random()
         val update = UserUpdate(
-            username = "updateduser",
+            username = "updateduser-$random",
             bio = "This is my updated bio",
-            email = "updated@example.com"
+            email = "updated$random@example.com"
         )
         val response = put("/api/user") {
             contentType(ContentType.Application.Json)

@@ -221,10 +221,10 @@ class ArticleServiceTest : DatabaseSpec() {
         val feedArticle2 = article2.copy(author = article2.author.copy(following = true)).withoutBody()
 
         val actualArticles = setOf(feedArticle1, feedArticle2)
-        val (feedArticles, _) = service.getFeed(followerId)
+        val (feedArticles, _) = service.getFeed(followerId, 20, 0)
         assertEquals(actualArticles, feedArticles.toSet())
 
-        val (limitedFeed, _) = service.getFeed(followerId, limit = 1)
+        val (limitedFeed, _) = service.getFeed(followerId, limit = 1, offset = 0)
         assert(actualArticles.containsAll(limitedFeed))
         assert(limitedFeed.size == 1)
     }

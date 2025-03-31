@@ -10,7 +10,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.resources.put
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import org.jetbrains.realworld.UserJWT
+import org.jetbrains.realworld.config.UserJWT
 import org.jetbrains.realworld.error.GenericErrorModel
 
 fun Route.articleRoutes(articleRepository: ArticleRepository) {
@@ -37,26 +37,22 @@ fun Route.articleRoutes(articleRepository: ArticleRepository) {
 
         get<ArticlesResource.BySlug> { resource ->
             val principal = call.principal<UserJWT>()
+
             val article = articleRepository.getArticleBySlug(resource.slug, principal?.userId)
 
-            if (article != null) {
-                call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
-            } else {
-                call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
-            }
+            if (article != null) call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
+            else call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
         }
     }
 
     authenticate {
         get<ArticlesResource.Feed> { resource ->
             val principal = call.principal<UserJWT>()!!
-            val limit = resource.limit ?: 20
-            val offset = resource.offset ?: 0
 
             val result = articleRepository.getFeed(
                 currentUserId = principal.userId,
-                limit = limit,
-                offset = offset
+                limit = resource.limit ?: 20,
+                offset = resource.offset ?: 0
             )
 
             call.respond(HttpStatusCode.OK, result)
@@ -78,16 +74,15 @@ fun Route.articleRoutes(articleRepository: ArticleRepository) {
 
             val article = articleRepository.updateArticle(resource.slug, principal.userId, request.article)
 
-            if (article != null) {
-                call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
-            } else {
-                call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
-            }
+            if (article != null) call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
+            else call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
         }
 
         delete<ArticlesResource.BySlug> { resource ->
             val principal = call.principal<UserJWT>()!!
+
             val success = articleRepository.deleteArticle(resource.slug, principal.userId)
+
             when (success) {
                 null -> call.respond(
                     HttpStatusCode.Forbidden,
@@ -104,11 +99,8 @@ fun Route.articleRoutes(articleRepository: ArticleRepository) {
 
             val article = articleRepository.favoriteArticle(resource.parent.slug, principal.userId)
 
-            if (article != null) {
-                call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
-            } else {
-                call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
-            }
+            if (article != null) call.respond(HttpStatusCode.OK, SingleArticleResponse(article))
+            else call.respond(HttpStatusCode.NotFound, GenericErrorModel("article not found"))
         }
 
         delete<ArticlesResource.BySlug.Favorite> { resource ->

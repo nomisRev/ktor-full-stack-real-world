@@ -3,6 +3,7 @@ package org.jetbrains.realworld
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import io.ktor.server.config.MapApplicationConfig
+import org.jetbrains.realworld.config.DatabaseConfig
 import org.testcontainers.containers.wait.strategy.Wait
 import kotlin.apply
 

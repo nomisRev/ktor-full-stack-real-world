@@ -1,6 +1,8 @@
 package org.jetbrains.realworld
 
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.realworld.config.dataSource
+import org.jetbrains.realworld.config.migrate
 import kotlin.test.BeforeTest
 
 abstract class DatabaseSpec {

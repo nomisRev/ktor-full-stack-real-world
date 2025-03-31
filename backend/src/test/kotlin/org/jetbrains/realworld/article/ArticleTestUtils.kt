@@ -7,6 +7,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import org.jetbrains.realworld.tokenAuth
 import org.jetbrains.realworld.user.User
 
 suspend fun HttpClient.createArticle(
@@ -19,7 +20,7 @@ suspend fun HttpClient.createArticle(
     val newArticle = NewArticle(title, description, body, tagList)
     val response = post("/api/articles") {
         contentType(ContentType.Application.Json)
-        bearerAuth(user.token!!)
+        tokenAuth(user.token!!)
         setBody(NewArticleRequest(newArticle))
     }
     return response.body<SingleArticleResponse>().article

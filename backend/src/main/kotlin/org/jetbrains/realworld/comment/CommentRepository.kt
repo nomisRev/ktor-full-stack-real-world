@@ -24,8 +24,6 @@ class CommentRepository(
     private val database: Database,
     private val profileRepository: ProfileRepository
 ) {
-    private val dateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
-
     fun getComments(slug: String, currentUserId: Long? = null): List<Comment>? = transaction(database) {
         val articleId = Articles
             .select(Articles.id)
@@ -74,7 +72,7 @@ class CommentRepository(
         )
     }
 
-    fun deleteComment(slug: String, commentId: Long, currentUserId: Long): Boolean = transaction(database) {
+    fun deleteComment(commentId: Long, currentUserId: Long): Boolean = transaction(database) {
         Comments.deleteWhere { (Comments.id eq commentId) and (Comments.authorId eq currentUserId) } > 0
     }
 
