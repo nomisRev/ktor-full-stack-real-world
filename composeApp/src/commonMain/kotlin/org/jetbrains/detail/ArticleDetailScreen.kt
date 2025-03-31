@@ -20,7 +20,7 @@ fun ArticleDetailContent(
                 title = { Text("Article") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        // Back icon would go here
+                        // TODO Back icon should go here
                         Text("Back")
                     }
                 }
@@ -33,15 +33,11 @@ fun ArticleDetailContent(
                 .padding(padding)
         ) {
             when (uiState) {
-                is ArticleDetailUiState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is ArticleDetailUiState.Success -> {
-                    ArticleDetail(article = uiState.article)
-                }
-                is ArticleDetailUiState.Error -> {
+                is ArticleDetailUiState.Loading ->
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+
+                is ArticleDetailUiState.Success -> ArticleDetail(article = uiState.article)
+                is ArticleDetailUiState.Error ->
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -53,7 +49,6 @@ fun ArticleDetailContent(
                             style = MaterialTheme.typography.body1
                         )
                     }
-                }
             }
         }
     }

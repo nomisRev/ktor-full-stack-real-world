@@ -24,7 +24,7 @@ fun ArticleListContent(
                 title = { Text("Articles") },
                 actions = {
                     IconButton(onClick = onRefresh) {
-                        // Refresh icon would go here
+                        // TODO Refresh icon should go here
                         Text("Refresh")
                     }
                 }
@@ -36,23 +36,21 @@ fun ArticleListContent(
                 is ArticleListUiState.Loading ->
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
 
-                is ArticleListUiState.Success -> {
-                    if (uiState.articles.isEmpty()) {
-                        Text(text = "No articles found", modifier = Modifier.align(Alignment.Center))
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(uiState.articles) { article ->
-                                ArticleItem(article = article, onClick = { onArticleClick(article) })
-                            }
+                is ArticleListUiState.Success -> if (uiState.articles.isEmpty()) {
+                    Text(text = "No articles found", modifier = Modifier.align(Alignment.Center))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(uiState.articles) { article ->
+                            ArticleItem(article = article, onClick = { onArticleClick(article) })
                         }
                     }
                 }
 
-                is ArticleListUiState.Error -> {
+                is ArticleListUiState.Error ->
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -68,7 +66,6 @@ fun ArticleListContent(
                             Text("Retry")
                         }
                     }
-                }
             }
         }
     }

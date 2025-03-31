@@ -26,3 +26,11 @@ internal val SlugNavType = object : NavType<Slug>(isNullableAllowed = false) {
     override fun parseValue(value: String): Slug = Slug(value)
     override fun serializeAsValue(value: Slug): String = value.slug
 }
+
+@Serializable
+@SerialName("Register")
+data object RegisterContent
+
+@Serializable
+@SerialName("Login")
+data object LoginContent

@@ -20,7 +20,9 @@ import org.jetbrains.home.ArticleListUiState.Error
 import org.jetbrains.home.ArticleListUiState.Loading
 import org.jetbrains.home.ArticleListUiState.Success
 
-class ArticleListViewModel(private val client: HttpClient) : ViewModel() {
+class ArticleListViewModel(
+    private val client: HttpClient,
+) : ViewModel() {
     private val _uiState = MutableStateFlow<ArticleListUiState>(Loading(emptyList()))
     val uiState: StateFlow<ArticleListUiState> = _uiState.asStateFlow()
 
@@ -41,6 +43,7 @@ class ArticleListViewModel(private val client: HttpClient) : ViewModel() {
                 val state = if (response.status.isSuccess()) Success(response.body<MultipleArticlesResponse>().articles)
                 else Error(response.body<GenericErrorModel>().message())
                 _uiState.value = state
+                // TODO we're swallowing CancellationException
             } catch (e: Exception) {
                 _uiState.value = Error(e.message ?: "Unknown error")
             }

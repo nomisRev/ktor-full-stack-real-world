@@ -9,6 +9,7 @@ import io.ktor.client.plugins.resources.Resources
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.auth.AuthViewModel
 import org.jetbrains.detail.ArticleDetailViewModel
 import org.jetbrains.home.ArticleListViewModel
 import org.jetbrains.nav.RealWorldNavHost
@@ -31,11 +32,8 @@ fun App() {
 
         val listViewModel = ArticleListViewModel(client)
         val detailViewModel = ArticleDetailViewModel(client)
+        val authViewModel = AuthViewModel(client)
 
-        LaunchedEffect(Unit) {
-            listViewModel.loadArticles()
-        }
-
-        RealWorldNavHost(listViewModel, detailViewModel)
+        RealWorldNavHost(listViewModel, detailViewModel, authViewModel)
     }
 }

@@ -25,6 +25,7 @@ class ArticleDetailViewModel(private val client: HttpClient) : ViewModel() {
                     .get(ArticlesResource.BySlug(ArticlesResource(), slug))
                     .body<SingleArticleResponse>()
                 _uiState.value = ArticleDetailUiState.Success(response.article)
+                // TODO we're swallowing CancellationException
             } catch (e: Exception) {
                 _uiState.value = ArticleDetailUiState.Error(e.message ?: "Unknown error")
             }
