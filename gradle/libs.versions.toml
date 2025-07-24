@@ -2,6 +2,8 @@
 exposed = "0.60.0"
 hikaricp = "6.2.1"
 kotlin = "2.1.20"
+dagger = "2.51"
+ksp = "2.1.20-1.0.19"
 ktor = "3.1.1"
 logback = "1.5.16"
 navigationCompose = "2.9.0-alpha15"
@@ -49,6 +51,9 @@ flyway = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "fl
 
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 
+dagger-core = { module = "com.google.dagger:dagger", version.ref = "dagger" }
+dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "dagger" }
+
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-resources = { module = "io.ktor:ktor-client-resources", version.ref = "ktor" }
@@ -94,3 +99,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -1,128 +1,128 @@
-INSERT INTO users (user_id, email, username, password, salt, bio, image)
-VALUES (1, 'test@example.com', 'testuser',
-        '$argon2id$v=19$m=65536,t=3,p=4$QnFQVXZJS3FxeXJZag$+ZFBiY3Qw+Syppg5nyBzUl6XwZRITBUxSIxM6BbgSuw', 'salt',
-        'Test user bio', 'https://randomuser.me/api/portraits/men/1.jpg'),
-       (2, 'jane@example.com', 'janesmith',
-        '$argon2id$v=19$m=65536,t=3,p=4$QnFQVXZJS3FxeXJZag$+ZFBiY3Qw+Syppg5nyBzUl6XwZRITBUxSIxM6BbgSuw',
-        'salt', 'Jane Smith bio', 'https://randomuser.me/api/portraits/women/2.jpg'),
-       (3, 'john@example.com', 'johndoe',
-        '$argon2id$v=19$m=65536,t=3,p=4$QnFQVXZJS3FxeXJZag$+ZFBiY3Qw+Syppg5nyBzUl6XwZRITBUxSIxM6BbgSuw', 'salt',
-        'John Doe bio',
-        'https://randomuser.me/api/portraits/men/3.jpg');
-
-INSERT INTO follows (follower_id, followed_id)
-VALUES ('1', '2'),
-       ('1', '3'),
-       ('2', '1'),
-       ('3', '1');
-
-INSERT INTO tags (tag_id, name)
-VALUES (1, 'test'),
-       (2, 'kotlin'),
-       (3, 'ktor'),
-       (4, 'programming'),
-       (5, 'web')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO articles (article_id, slug, title, description, body, author_id, created_at, updated_at)
-VALUES ('1', 'test-article-1', 'Test Article 1', 'This is a test article',
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', '1', NOW(), NOW()),
-       ('2', 'test-article-2', 'Test Article 2', 'Another test article',
-        'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', '2', NOW(), NOW()),
-       ('3', 'test-article-3', 'Test Article 3', 'Yet another test article',
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.', '3', NOW(), NOW()),
-       ('4', 'test-article-4', 'Test Article 4', 'Fourth test article', 'Lorem ipsum dolor sit amet, adipiscing elit.',
-        '1', NOW(), NOW()),
-       ('5', 'test-article-5', 'Test Article 5', 'Fifth test article', 'Lorem ipsum dolor sit amet, consectetur elit.',
-        '2', NOW(), NOW()),
-       ('6', 'test-article-6', 'Test Article 6', 'Sixth test article', 'Lorem ipsum dolor sit amet.', '3', NOW(),
-        NOW()),
-       ('7', 'test-article-7', 'Test Article 7', 'Seventh test article', 'Just writing more test data for articles.',
-        '1', NOW(), NOW()),
-       ('8', 'test-article-8', 'Test Article 8', 'Eighth test article', 'Some interesting content to read.', '2', NOW(),
-        NOW()),
-       ('9', 'test-article-9', 'Test Article 9', 'Ninth test article description here.',
-        'This is a placeholder body text for the ninth article.', '3', NOW(), NOW()),
-       ('10', 'test-article-10', 'Test Article 10', 'Tenth article for testing purposes.',
-        'Lorem ipsum is a dummy text often used in designs.', '1', NOW(), NOW()),
-       ('11', 'test-article-11', 'Test Article 11', 'Eleventh article description.',
-        'Article eleven content goes here.', '2', NOW(), NOW()),
-       ('12', 'test-article-12', 'Test Article 12', 'Twelfth article content.', 'Lorem ipsum article no. 12.', '3',
-        NOW(), NOW()),
-       ('13', 'test-article-13', 'Test Article 13', 'A lucky thirteenth article description.',
-        'Body of article thirteen for demo data.', '1', NOW(), NOW()),
-       ('14', 'test-article-14', 'Test Article 14', 'Fourteenth article content.',
-        'Fourteenth article lorem ipsum placeholder.', '2', NOW(), NOW()),
-       ('15', 'test-article-15', 'Test Article 15', 'Another test entry.', 'Adding article number fifteen.', '3', NOW(),
-        NOW()),
-       ('16', 'test-article-16', 'Test Article 16', 'Sweet sixteen!', 'Number sixteen article for our test.', '1',
-        NOW(), NOW()),
-       ('17', 'test-article-17', 'Test Article 17', 'Seventeenth article.', 'You can see this body at article #17.',
-        '2', NOW(), NOW()),
-       ('18', 'test-article-18', 'Test Article 18', 'Eighteenth test article.', 'Eighteen it is for this data.', '3',
-        NOW(), NOW()),
-       ('19', 'test-article-19', 'Test Article 19', 'Nineteenth tester article.', 'One more to twenty.', '1', NOW(),
-        NOW()),
-       ('20', 'test-article-20', 'Test Article 20', 'Twentieth test description.', 'This is article number 20.', '2',
-        NOW(), NOW()),
-       ('21', 'test-article-21', 'Test Article 21', 'Test Article Twenty-One', 'Writing more test cases here.', '3',
-        NOW(), NOW()),
-       ('22', 'test-article-22', 'Test Article 22', 'Test Article Twenty-Two', 'Lorem Ipsum Test Article No. 22.', '1',
-        NOW(), NOW()),
-       ('23', 'test-article-23', 'Test Article 23', 'Test Article Twenty-Three',
-        'This is the content of article number 23.', '2', NOW(), NOW()),
-       ('24', 'test-article-24', 'Test Article 24', 'Test Article Twenty-Four', 'Test article - placeholder content.',
-        '3', NOW(), NOW()),
-       ('25', 'test-article-25', 'Test Article 25', 'Placeholder Entry 25', 'Dummy placeholder text for article 25.',
-        '1', NOW(), NOW()),
-       ('26', 'test-article-26', 'Test Article 26', 'Generating Test Article 26',
-        'This is body text for article number 26.', '2', NOW(), NOW()),
-       ('27', 'test-article-27', 'Test Article 27', 'Adding Test Data', 'Article 27 - more test inserts.', '3', NOW(),
-        NOW()),
-       ('28', 'test-article-28', 'Test Article 28', 'Testing Article 28', 'Content inside article number 28 here.', '1',
-        NOW(), NOW()),
-       ('29', 'test-article-29', 'Test Article 29', 'Testing Article Entry', 'Nearing thirty with test data.', '2',
-        NOW(), NOW()),
-       ('30', 'test-article-30', 'Test Article 30', 'Reached Thirty!', 'Article thirty for testing.', '3', NOW(),
-        NOW()),
-       ('31', 'test-article-31', 'Test Article 31', 'Thirtieth Entry Expansion', 'Placeholder thirty-one articles.',
-        '1', NOW(), NOW()),
-       ('32', 'test-article-32', 'Test Article 32', 'Article Number 32', 'Thirty-Two Placeholder.', '2', NOW(), NOW()),
-       ('33', 'test-article-33', 'Test Article 33', 'An Article Surprise', 'Demo Data - Dump of 33rd article.', '3',
-        NOW(), NOW()),
-       ('34', 'test-article-34', 'Test Article 34', 'Entry at Number 34', 'Prepared data set for article 34.', '1',
-        NOW(), NOW()),
-       ('35', 'test-article-35', 'Test Article 35', 'Testing Database Generation - 35', 'This is article thirty-five.',
-        '2', NOW(), NOW()),
-       ('36', 'test-article-36', 'Test Article 36', 'Testing with Article 36', 'Feeds #36 Live Insert Experiment.', '3',
-        NOW(), NOW()),
-       ('37', 'test-article-37', 'Test Article 37', 'Test Insert Extended - 37',
-        'Designer-blinded Article Input Trial.', '1', NOW(), NOW()),
-       ('38', 'test-article-38', 'Test Article 38', 'Flow Simulations Database - Add.',
-        'Documentation Trials Emerging.', '2', NOW(), NOW()),
-       ('39', 'test-article-39', 'Test Article 39', 'Different Authors Collection Placeholder',
-        'Assembly Content of Different.', '3', NOW(), NOW()),
-       ('40', 'test-article-40', 'Test Article 40', 'Round-off Final Entered Timeslot Max',
-        'Consistent Allocation - Articulate Persuasion.', '1', NOW(), NOW())
-ON CONFLICT DO NOTHING;
-
--- Generating random tags with at least 1 tag and up to 3 tags for all articles.
-INSERT INTO article_tags (article_id, tag_id)
-SELECT articles.article_id AS article_id, FLOOR(1 + (RANDOM() * 5)) AS tag_id
-FROM articles
-         CROSS JOIN (SELECT 1 AS n UNION SELECT 2 UNION SELECT 3) AS tag_count
-WHERE RANDOM() < (1.0 / tag_count.n)
-ORDER BY articles.article_id, tag_id
-ON CONFLICT DO NOTHING;
-
--- Generating random favorites for all articles.
-INSERT INTO favorites (user_id, article_id)
-SELECT FLOOR(1 + (RANDOM() * 3)) AS user_id, article_id AS article_id
-FROM articles
-ORDER BY RANDOM();
-
-INSERT INTO comments (comment_id, body, author_id, article_id, created_at, updated_at)
-VALUES ('1', 'Great article!', '2', '1', NOW(), NOW()),
-       ('2', 'Thanks for sharing.', '3', '1', NOW(), NOW()),
-       ('3', 'Interesting perspective.', '1', '2', NOW(), NOW()),
-       ('4', 'I learned a lot from this.', '1', '3', NOW(), NOW());
+-- INSERT INTO users (user_id, email, username, password, salt, bio, image)
+-- VALUES (1, 'test@example.com', 'testuser',
+--         '$argon2id$v=19$m=65536,t=3,p=4$QnFQVXZJS3FxeXJZag$+ZFBiY3Qw+Syppg5nyBzUl6XwZRITBUxSIxM6BbgSuw', 'salt',
+--         'Test user bio', 'https://randomuser.me/api/portraits/men/1.jpg'),
+--        (2, 'jane@example.com', 'janesmith',
+--         '$argon2id$v=19$m=65536,t=3,p=4$QnFQVXZJS3FxeXJZag$+ZFBiY3Qw+Syppg5nyBzUl6XwZRITBUxSIxM6BbgSuw',
+--         'salt', 'Jane Smith bio', 'https://randomuser.me/api/portraits/women/2.jpg'),
+--        (3, 'john@example.com', 'johndoe',
+--         '$argon2id$v=19$m=65536,t=3,p=4$QnFQVXZJS3FxeXJZag$+ZFBiY3Qw+Syppg5nyBzUl6XwZRITBUxSIxM6BbgSuw', 'salt',
+--         'John Doe bio',
+--         'https://randomuser.me/api/portraits/men/3.jpg');
+--
+-- INSERT INTO follows (follower_id, followed_id)
+-- VALUES ('1', '2'),
+--        ('1', '3'),
+--        ('2', '1'),
+--        ('3', '1');
+--
+-- INSERT INTO tags (tag_id, name)
+-- VALUES (1, 'test'),
+--        (2, 'kotlin'),
+--        (3, 'ktor'),
+--        (4, 'programming'),
+--        (5, 'web')
+-- ON CONFLICT DO NOTHING;
+--
+-- INSERT INTO articles (article_id, slug, title, description, body, author_id, created_at, updated_at)
+-- VALUES ('1', 'test-article-1', 'Test Article 1', 'This is a test article',
+--         'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', '1', NOW(), NOW()),
+--        ('2', 'test-article-2', 'Test Article 2', 'Another test article',
+--         'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', '2', NOW(), NOW()),
+--        ('3', 'test-article-3', 'Test Article 3', 'Yet another test article',
+--         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.', '3', NOW(), NOW()),
+--        ('4', 'test-article-4', 'Test Article 4', 'Fourth test article', 'Lorem ipsum dolor sit amet, adipiscing elit.',
+--         '1', NOW(), NOW()),
+--        ('5', 'test-article-5', 'Test Article 5', 'Fifth test article', 'Lorem ipsum dolor sit amet, consectetur elit.',
+--         '2', NOW(), NOW()),
+--        ('6', 'test-article-6', 'Test Article 6', 'Sixth test article', 'Lorem ipsum dolor sit amet.', '3', NOW(),
+--         NOW()),
+--        ('7', 'test-article-7', 'Test Article 7', 'Seventh test article', 'Just writing more test data for articles.',
+--         '1', NOW(), NOW()),
+--        ('8', 'test-article-8', 'Test Article 8', 'Eighth test article', 'Some interesting content to read.', '2', NOW(),
+--         NOW()),
+--        ('9', 'test-article-9', 'Test Article 9', 'Ninth test article description here.',
+--         'This is a placeholder body text for the ninth article.', '3', NOW(), NOW()),
+--        ('10', 'test-article-10', 'Test Article 10', 'Tenth article for testing purposes.',
+--         'Lorem ipsum is a dummy text often used in designs.', '1', NOW(), NOW()),
+--        ('11', 'test-article-11', 'Test Article 11', 'Eleventh article description.',
+--         'Article eleven content goes here.', '2', NOW(), NOW()),
+--        ('12', 'test-article-12', 'Test Article 12', 'Twelfth article content.', 'Lorem ipsum article no. 12.', '3',
+--         NOW(), NOW()),
+--        ('13', 'test-article-13', 'Test Article 13', 'A lucky thirteenth article description.',
+--         'Body of article thirteen for demo data.', '1', NOW(), NOW()),
+--        ('14', 'test-article-14', 'Test Article 14', 'Fourteenth article content.',
+--         'Fourteenth article lorem ipsum placeholder.', '2', NOW(), NOW()),
+--        ('15', 'test-article-15', 'Test Article 15', 'Another test entry.', 'Adding article number fifteen.', '3', NOW(),
+--         NOW()),
+--        ('16', 'test-article-16', 'Test Article 16', 'Sweet sixteen!', 'Number sixteen article for our test.', '1',
+--         NOW(), NOW()),
+--        ('17', 'test-article-17', 'Test Article 17', 'Seventeenth article.', 'You can see this body at article #17.',
+--         '2', NOW(), NOW()),
+--        ('18', 'test-article-18', 'Test Article 18', 'Eighteenth test article.', 'Eighteen it is for this data.', '3',
+--         NOW(), NOW()),
+--        ('19', 'test-article-19', 'Test Article 19', 'Nineteenth tester article.', 'One more to twenty.', '1', NOW(),
+--         NOW()),
+--        ('20', 'test-article-20', 'Test Article 20', 'Twentieth test description.', 'This is article number 20.', '2',
+--         NOW(), NOW()),
+--        ('21', 'test-article-21', 'Test Article 21', 'Test Article Twenty-One', 'Writing more test cases here.', '3',
+--         NOW(), NOW()),
+--        ('22', 'test-article-22', 'Test Article 22', 'Test Article Twenty-Two', 'Lorem Ipsum Test Article No. 22.', '1',
+--         NOW(), NOW()),
+--        ('23', 'test-article-23', 'Test Article 23', 'Test Article Twenty-Three',
+--         'This is the content of article number 23.', '2', NOW(), NOW()),
+--        ('24', 'test-article-24', 'Test Article 24', 'Test Article Twenty-Four', 'Test article - placeholder content.',
+--         '3', NOW(), NOW()),
+--        ('25', 'test-article-25', 'Test Article 25', 'Placeholder Entry 25', 'Dummy placeholder text for article 25.',
+--         '1', NOW(), NOW()),
+--        ('26', 'test-article-26', 'Test Article 26', 'Generating Test Article 26',
+--         'This is body text for article number 26.', '2', NOW(), NOW()),
+--        ('27', 'test-article-27', 'Test Article 27', 'Adding Test Data', 'Article 27 - more test inserts.', '3', NOW(),
+--         NOW()),
+--        ('28', 'test-article-28', 'Test Article 28', 'Testing Article 28', 'Content inside article number 28 here.', '1',
+--         NOW(), NOW()),
+--        ('29', 'test-article-29', 'Test Article 29', 'Testing Article Entry', 'Nearing thirty with test data.', '2',
+--         NOW(), NOW()),
+--        ('30', 'test-article-30', 'Test Article 30', 'Reached Thirty!', 'Article thirty for testing.', '3', NOW(),
+--         NOW()),
+--        ('31', 'test-article-31', 'Test Article 31', 'Thirtieth Entry Expansion', 'Placeholder thirty-one articles.',
+--         '1', NOW(), NOW()),
+--        ('32', 'test-article-32', 'Test Article 32', 'Article Number 32', 'Thirty-Two Placeholder.', '2', NOW(), NOW()),
+--        ('33', 'test-article-33', 'Test Article 33', 'An Article Surprise', 'Demo Data - Dump of 33rd article.', '3',
+--         NOW(), NOW()),
+--        ('34', 'test-article-34', 'Test Article 34', 'Entry at Number 34', 'Prepared data set for article 34.', '1',
+--         NOW(), NOW()),
+--        ('35', 'test-article-35', 'Test Article 35', 'Testing Database Generation - 35', 'This is article thirty-five.',
+--         '2', NOW(), NOW()),
+--        ('36', 'test-article-36', 'Test Article 36', 'Testing with Article 36', 'Feeds #36 Live Insert Experiment.', '3',
+--         NOW(), NOW()),
+--        ('37', 'test-article-37', 'Test Article 37', 'Test Insert Extended - 37',
+--         'Designer-blinded Article Input Trial.', '1', NOW(), NOW()),
+--        ('38', 'test-article-38', 'Test Article 38', 'Flow Simulations Database - Add.',
+--         'Documentation Trials Emerging.', '2', NOW(), NOW()),
+--        ('39', 'test-article-39', 'Test Article 39', 'Different Authors Collection Placeholder',
+--         'Assembly Content of Different.', '3', NOW(), NOW()),
+--        ('40', 'test-article-40', 'Test Article 40', 'Round-off Final Entered Timeslot Max',
+--         'Consistent Allocation - Articulate Persuasion.', '1', NOW(), NOW())
+-- ON CONFLICT DO NOTHING;
+--
+-- -- Generating random tags with at least 1 tag and up to 3 tags for all articles.
+-- INSERT INTO article_tags (article_id, tag_id)
+-- SELECT articles.article_id AS article_id, FLOOR(1 + (RANDOM() * 5)) AS tag_id
+-- FROM articles
+--          CROSS JOIN (SELECT 1 AS n UNION SELECT 2 UNION SELECT 3) AS tag_count
+-- WHERE RANDOM() < (1.0 / tag_count.n)
+-- ORDER BY articles.article_id, tag_id
+-- ON CONFLICT DO NOTHING;
+--
+-- -- Generating random favorites for all articles.
+-- INSERT INTO favorites (user_id, article_id)
+-- SELECT FLOOR(1 + (RANDOM() * 3)) AS user_id, article_id AS article_id
+-- FROM articles
+-- ORDER BY RANDOM();
+--
+-- INSERT INTO comments (comment_id, body, author_id, article_id, created_at, updated_at)
+-- VALUES ('1', 'Great article!', '2', '1', NOW(), NOW()),
+--        ('2', 'Thanks for sharing.', '3', '1', NOW(), NOW()),
+--        ('3', 'Interesting perspective.', '1', '2', NOW(), NOW()),
+--        ('4', 'I learned a lot from this.', '1', '3', NOW(), NOW());

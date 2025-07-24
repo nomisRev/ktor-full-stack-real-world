@@ -27,6 +27,10 @@ dependencies {
     implementation(libs.ktor.kotlinx.json)
     implementation(libs.ktor.server.content.negotiation)
 
+    // Dagger
+    implementation(libs.dagger.core)
+    annotationProcessor(libs.dagger.compiler)
+
     // Database
     implementation(libs.postgresql)
     implementation(libs.exposed.jdbc)
