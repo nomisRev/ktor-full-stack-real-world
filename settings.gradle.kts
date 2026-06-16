@@ -32,5 +32,8 @@ dependencyResolutionManagement {
 }
 
 include("backend")
-include("composeApp")
 include("conduit-api")
+include(":app:androidApp")
+include(":app:desktopApp")
+include(":app:shared")
+include(":app:webApp")

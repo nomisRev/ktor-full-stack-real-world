@@ -12,15 +12,13 @@ A Ktor-based server that implements the RealWorld API specification, providing e
 ### Conduit API
 A Kotlin Multiplatform library that defines the API contract (resources, data models) shared between the backend and client applications. This enables type-safe API communication across all platforms.
 
-### ComposeApp
-A Kotlin Multiplatform UI application using Compose Multiplatform that targets:
-- Android
-- iOS
-- Desktop (JVM)
-- Web (WebAssembly)
-
-### iOS App
-A native iOS application that integrates with the Kotlin Multiplatform code.
+### App
+A Kotlin Multiplatform UI application split into platform app modules and a shared Compose Multiplatform module:
+- `app/shared` contains shared UI and client logic
+- `app/androidApp` contains the Android app host
+- `app/desktopApp` contains the Desktop (JVM) app host
+- `app/webApp` contains the Web app host
+- `app/iosApp` contains the native iOS app that integrates with the shared Kotlin framework
 
 ## Tech Stack
 
@@ -125,19 +123,19 @@ To build and run the backend, use one of the following Gradle tasks:
 | `./gradlew :backend:run`      | Run the backend server                                               |
 | `./gradlew :backend:buildFatJar` | Build an executable JAR with all dependencies included            |
 
-### Running the ComposeApp
+### Running the Compose apps
 
-To run the ComposeApp on different platforms:
+To run the Compose apps on different platforms:
 
 | Task                                   | Description                                                  |
 | ---------------------------------------|-------------------------------------------------------------- |
-| `./gradlew :composeApp:androidDebug`  | Run on Android device/emulator                               |
-| `./gradlew :composeApp:desktopRun`    | Run on desktop                                               |
-| `./gradlew :composeApp:wasmJsBrowserDevelopmentRun` | Run in browser (WebAssembly)                   |
+| `./gradlew :app:androidApp:assembleDebug` | Build the Android app                                    |
+| `./gradlew :app:desktopApp:run`       | Run on desktop                                               |
+| `./gradlew :app:webApp:wasmJsBrowserDevelopmentRun` | Run in browser (WebAssembly)                 |
 
 ### Running the iOS App
 
-Open the `iosApp/iosApp.xcodeproj` file in Xcode and run the application from there.
+Open the `app/iosApp/iosApp.xcodeproj` file in Xcode and run the application from there.
 
 ### Configuration
 
