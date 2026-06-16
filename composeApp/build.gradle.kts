@@ -55,11 +55,16 @@ kotlin {
 
     sourceSets {
         val desktopMain by getting
+//        val iosX64Main by getting
+//        val iosSimulatorArm64Main by getting
+        val iosArm64Main by getting
+        val wasmJsMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.security.crypto)
+            implementation(ktorLibs.client.android)
         }
         commonMain.dependencies {
             implementation(projects.conduitApi)
@@ -74,7 +79,7 @@ kotlin {
 //            implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.datetime)
             implementation(libs.navigation.compose)
-            implementation(ktorLibs.client.cio)
+            implementation(ktorLibs.client.core)
             implementation(ktorLibs.client.resources)
             implementation(ktorLibs.client.contentNegotiation)
             implementation(ktorLibs.serialization.kotlinx.json)
@@ -82,6 +87,19 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(ktorLibs.client.cio)
+        }
+        iosX64Main.dependencies {
+            implementation(ktorLibs.client.darwin)
+        }
+        iosArm64Main.dependencies {
+            implementation(ktorLibs.client.darwin)
+        }
+        iosSimulatorArm64Main.dependencies {
+            implementation(ktorLibs.client.darwin)
+        }
+        wasmJsMain.dependencies {
+            implementation(ktorLibs.client.js)
         }
     }
 }
