@@ -1,17 +1,30 @@
 package org.jetbrains.realworld.article
 
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inSubQuery
-import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.innerJoin
+import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.batchInsert
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.insertReturning
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.realworld.profile.Follows
 import org.jetbrains.realworld.profile.Profile
 import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Users
+import kotlin.time.Clock
 
 object Articles : LongIdTable("articles", "article_id") {
     val slug = varchar("slug", 255).uniqueIndex()

@@ -1,10 +1,10 @@
 package org.jetbrains.realworld.article
 
 import io.ktor.resources.Resource
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import org.jetbrains.realworld.Root
 import org.jetbrains.realworld.profile.Profile
+import kotlin.time.Instant
 
 @Resource("/articles")
 class ArticlesResource(val root: Root = Root) {

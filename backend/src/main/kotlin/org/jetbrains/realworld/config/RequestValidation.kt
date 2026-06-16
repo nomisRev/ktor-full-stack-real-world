@@ -21,7 +21,7 @@ fun Application.configureValidation() {
     }
     install(RequestValidation) {
         validate<NewUserRequest> { request ->
-            val errors = buildList<String> {
+            val errors = buildList {
                 if (request.user.email.isBlank()) add("Email cannot be blank")
                 if (!request.user.email.contains("@")) add("Invalid email format")
                 if (request.user.username.isBlank()) add("Username cannot be blank")
@@ -34,7 +34,7 @@ fun Application.configureValidation() {
         }
 
         validate<UserLogin> { user ->
-            val errors = buildList<String> {
+            val errors = buildList {
                 if (user.email.isBlank()) add("Email cannot be blank")
                 if (!user.email.contains("@")) add("Invalid email format")
                 if (user.password.isBlank()) add("Password cannot be blank")
@@ -44,7 +44,7 @@ fun Application.configureValidation() {
         }
 
         validate<UserUpdate> { user ->
-            val errors = buildList<String> {
+            val errors = buildList {
                 if (user.email?.isBlank() == true) add("Email cannot be blank")
                 if (user.email?.contains("@") == false) add("Invalid email format")
                 if (user.username?.isBlank() == true) add("Username cannot be blank")
@@ -57,7 +57,7 @@ fun Application.configureValidation() {
         }
 
         validate<NewArticleRequest> { request ->
-            val errors = buildList<String> {
+            val errors = buildList {
                 if (request.article.title.isBlank()) add("Title cannot be blank")
                 if (request.article.description.isBlank()) add("Description cannot be blank")
                 if (request.article.body.isBlank()) add("Body cannot be blank")
@@ -67,7 +67,7 @@ fun Application.configureValidation() {
         }
 
         validate<UpdateArticleRequest> { request ->
-            val errors = buildList<String> {
+            val errors = buildList {
                 if (request.article.title?.isBlank() == true) add("Title cannot be blank")
                 if (request.article.description?.isBlank() == true) add("Description cannot be blank")
                 if (request.article.body?.isBlank() == true) add("Body cannot be blank")

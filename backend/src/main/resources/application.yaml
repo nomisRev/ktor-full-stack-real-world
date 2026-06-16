@@ -5,21 +5,6 @@ ktor:
     deployment:
         port: 8080
 
-    security:
-        headers:
-            xContentTypeOptions: true
-            xFrameOptions: "DENY"
-            contentSecurityPolicy: "default-src 'self'"
-
-    metrics:
-        enabled: true
-
-    logging:
-        level: INFO
-        loggers:
-            - name: "org.jetbrains.realworld"
-              level: DEBUG
-
 database:
     driverClassName: "org.postgresql.Driver"
     host: "localhost"

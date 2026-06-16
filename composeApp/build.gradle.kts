@@ -59,6 +59,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.security.crypto)
         }
         commonMain.dependencies {
             implementation(projects.conduitApi)
@@ -73,7 +74,10 @@ kotlin {
 //            implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.datetime)
             implementation(libs.navigation.compose)
-            implementation(libs.bundles.ktor.client)
+            implementation(ktorLibs.client.cio)
+            implementation(ktorLibs.client.resources)
+            implementation(ktorLibs.client.contentNegotiation)
+            implementation(ktorLibs.serialization.kotlinx.json)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

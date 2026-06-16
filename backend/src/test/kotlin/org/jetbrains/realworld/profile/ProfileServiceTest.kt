@@ -1,8 +1,8 @@
 package org.jetbrains.realworld.profile
 
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.realworld.DatabaseSpec
 import org.jetbrains.realworld.user.Argon2Hasher
 import org.jetbrains.realworld.user.Users
@@ -105,7 +105,7 @@ class ProfileServiceTest : DatabaseSpec() {
         // First follow the user
         val followedProfile = service.followUser(followedUsername, followerId)
         assertNotNull(followedProfile, "Profile should not be null")
-        assertTrue(followedProfile!!.following, "User should be following the profile")
+        assertTrue(followedProfile.following, "User should be following the profile")
 
         // Then unfollow
         val unfollowedProfile = service.unfollowUser(followedUsername, followerId)

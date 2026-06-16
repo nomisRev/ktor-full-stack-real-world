@@ -1,8 +1,8 @@
 package org.jetbrains.realworld.comment
 
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.realworld.DatabaseSpec
 import org.jetbrains.realworld.article.ArticleRepository
 import org.jetbrains.realworld.article.NewArticle

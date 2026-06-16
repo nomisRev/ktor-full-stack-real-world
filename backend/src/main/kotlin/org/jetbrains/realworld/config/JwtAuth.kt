@@ -6,29 +6,22 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.config.getAs
 import io.ktor.server.response.respond
+import kotlinx.serialization.Serializable
 import org.jetbrains.realworld.error.GenericErrorModel
 import org.jetbrains.realworld.user.User
 import org.jetbrains.realworld.user.UserService
 import java.util.*
 
+@Serializable
 data class JwtConfig(
     val secret: String,
     val issuer: String,
     val audience: String,
     val realm: String,
     val expirationMillis: Long,
-) {
-    companion object {
-        fun load(environment: ApplicationEnvironment) = JwtConfig(
-            secret = environment.config.property("jwt.secret").getString(),
-            issuer = environment.config.property("jwt.issuer").getString(),
-            audience = environment.config.property("jwt.audience").getString(),
-            realm = environment.config.property("jwt.realm").getString(),
-            expirationMillis = environment.config.property("jwt.expiration").getString().toLong(),
-        )
-    }
-}
+)
 
 data class UserJWT(val userId: Long, val user: User)
 

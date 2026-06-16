@@ -1,8 +1,8 @@
 package org.jetbrains.realworld.article
 
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.realworld.DatabaseSpec
 import org.jetbrains.realworld.profile.Follows
 import org.jetbrains.realworld.profile.ProfileRepository
@@ -256,7 +256,7 @@ class ArticleServiceTest : DatabaseSpec() {
 
         val favoritedArticle = service.favoriteArticle(article.slug, userId)
         assertNotNull(favoritedArticle, "Favorited article should not be null")
-        assertTrue(favoritedArticle!!.favorited, "Article should be marked as favorited")
+        assertTrue(favoritedArticle.favorited, "Article should be marked as favorited")
 
         val unfavoritedArticle = service.unfavoriteArticle(article.slug, userId)
 

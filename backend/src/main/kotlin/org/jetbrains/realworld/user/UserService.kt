@@ -2,19 +2,25 @@ package org.jetbrains.realworld.user
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.exceptions.ExposedSQLException
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.updateReturning
 import org.jetbrains.realworld.config.JwtConfig
 import org.jetbrains.realworld.user.UserService.LoginResult.InvalidCredentials
 import org.jetbrains.realworld.user.UserService.LoginResult.Success
 import org.jetbrains.realworld.user.UserService.LoginResult.UserNotFound
 import org.postgresql.util.PSQLState
 import java.util.Date
+import kotlin.time.Clock
 
 object Users : LongIdTable("users", "user_id") {
     val email = varchar("email", 255).uniqueIndex()

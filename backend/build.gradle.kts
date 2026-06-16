@@ -1,7 +1,7 @@
 
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
-    alias(libs.plugins.ktor)
+    id(ktorLibs.plugins.ktor.get().pluginId)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.assert)
 }
@@ -23,13 +23,9 @@ powerAssert {
 
 dependencies {
     implementation(projects.conduitApi)
-    implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.kotlinx.json)
-    implementation(libs.ktor.server.content.negotiation)
-
-    // Dagger
-    implementation(libs.dagger.core)
-    annotationProcessor(libs.dagger.compiler)
+    implementation(ktorLibs.server.netty)
+    implementation(ktorLibs.server.contentNegotiation)
+    implementation(ktorLibs.serialization.kotlinx.json)
 
     // Database
     implementation(libs.postgresql)
@@ -39,25 +35,27 @@ dependencies {
     implementation(libs.flyway)
 
     // Metrics and Monitoring
-    implementation(libs.ktor.server.metrics.micrometer)
+    implementation(ktorLibs.server.metrics.micrometer)
     implementation(libs.micrometer.registry.prometheus)
 
-    implementation(libs.ktor.server.default.headers)
-    implementation(libs.ktor.server.auto.head.response)
-    implementation(libs.ktor.server.resources)
-    implementation(libs.ktor.server.request.validation)
-    implementation(libs.ktor.server.status.pages)
-    implementation(libs.ktor.server.call.logging)
+    implementation(ktorLibs.server.defaultHeaders)
+    implementation(ktorLibs.server.autoHeadResponse)
+    implementation(ktorLibs.server.resources)
+    implementation(ktorLibs.server.requestValidation)
+    implementation(ktorLibs.server.statusPages)
+    implementation(ktorLibs.server.callLogging)
 
-    implementation(libs.ktor.server.auth.jwt)
+    implementation(ktorLibs.server.auth.jwt)
     implementation(libs.bouncycastle)
 
     // Server and Logging
-    implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
-    implementation(libs.ktor.server.config.yaml)
+    implementation(ktorLibs.server.config.yaml)
 
     // Testing
-    testImplementation(libs.bundles.ktor.client)
+    testImplementation(ktorLibs.client.cio)
+    testImplementation(ktorLibs.client.resources)
+    testImplementation(ktorLibs.client.contentNegotiation)
+    testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.bundles.testing)
 }

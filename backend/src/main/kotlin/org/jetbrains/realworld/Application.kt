@@ -4,27 +4,36 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.application.install
+import io.ktor.server.config.getAs
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.resources.*
 import io.ktor.server.routing.*
+import io.ktor.util.SilentSupervisor
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
 import org.jetbrains.realworld.user.userRoutes
 import org.jetbrains.realworld.profile.profileRoutes
 import org.jetbrains.realworld.article.articleRoutes
 import org.jetbrains.realworld.comment.commentRoutes
+import org.jetbrains.realworld.config.Config
 import org.jetbrains.realworld.config.dependencies
 import org.jetbrains.realworld.config.configureAuthentication
 import org.jetbrains.realworld.config.configureValidation
+import kotlin.time.Duration
 
-fun main(args: Array<String>) =
+fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
 
-fun Application.module() {
-    val deps = dependencies()
+suspend fun Application.module() {
+    val config = environment.config.getAs<Config>()
+    val deps = dependencies(config)
 
     install(CallLogging)
     install(ContentNegotiation) { json() }

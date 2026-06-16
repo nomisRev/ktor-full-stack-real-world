@@ -11,7 +11,6 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
     js { browser() }
-    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         d8()
@@ -19,7 +18,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ktor.server.resources)
+            implementation(ktorLibs.resources)
             implementation(libs.kotlinx.datetime)
         }
     }

@@ -1,16 +1,23 @@
 package org.jetbrains.realworld.comment
 
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.innerJoin
+import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.realworld.article.Articles
 import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Users
 import java.time.format.DateTimeFormatter
+import kotlin.time.Clock
 
 private object Comments : LongIdTable("comments", "comment_id") {
     val articleId = reference("article_id", Articles)

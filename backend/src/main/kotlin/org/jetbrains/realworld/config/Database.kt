@@ -5,12 +5,15 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationEnvironment
 import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.config.getAs
+import kotlinx.serialization.Serializable
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import kotlin.apply
 
+@Serializable
 data class DatabaseConfig(
     val driverClassName: String,
     val host: String,
@@ -24,26 +27,7 @@ data class DatabaseConfig(
     val prepStmtCacheSqlLimit: Int,
     val locations: String,
     val baselineOnMigrate: Boolean,
-) {
-    companion object {
-        fun load(environment: ApplicationEnvironment): DatabaseConfig = with(environment.config) {
-            DatabaseConfig(
-                driverClassName = property("database.driverClassName").getString(),
-                host = property("database.host").getString(),
-                port = property("database.port").getString().toInt(),
-                name = property("database.name").getString(),
-                username = property("database.username").getString(),
-                password = property("database.password").getString(),
-                maxPoolSize = property("database.maxPoolSize").getString().toInt(),
-                cachePrepStmts = property("database.cachePrepStmts").getString().toBoolean(),
-                prepStmtCacheSize = property("database.prepStmtCacheSize").getString().toInt(),
-                prepStmtCacheSqlLimit = property("database.prepStmtCacheSqlLimit").getString().toInt(),
-                locations = property("database.migrations.locations").getString(),
-                baselineOnMigrate = property("database.migrations.baselineOnMigrate").getString().toBoolean(),
-            )
-        }
-    }
-}
+)
 
 fun Application.setupDatabase(config: DatabaseConfig): Database {
     val dataSource = dataSource(config)

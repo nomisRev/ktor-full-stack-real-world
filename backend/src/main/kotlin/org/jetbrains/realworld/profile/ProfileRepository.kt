@@ -1,10 +1,16 @@
 package org.jetbrains.realworld.profile
 
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
-import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.Transaction
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.realworld.user.Users
 
 object Follows : Table("follows") {
@@ -38,7 +44,8 @@ class ProfileRepository(private val database: Database) {
 
     fun unfollowUser(username: String, currentUserId: Long): Profile? =
         withUser(username) { userId ->
-            Follows.deleteWhere { (Follows.followerId eq currentUserId).and(Follows.followedId eq userId) } == 1
+            Follows.deleteWhere { (Follows.followerId eq currentUserId).and(Follows.followedId eq userId) }
+            false
         }
 
     private inline fun withUser(
