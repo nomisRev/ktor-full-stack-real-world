@@ -1,5 +1,9 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCacheApi::class)
+
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.DisableCacheInKotlinVersion
+import java.net.URI
 
 plugins {
     id(libs.plugins.kotlin.multiplatform.get().pluginId)
@@ -17,6 +21,11 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
+            disableNativeCache(
+                version = DisableCacheInKotlinVersion.`2_4_0`,
+                reason = "Work around Kotlin/Native cache generation failure for navigation-common 2.9.0-alpha15.",
+                issueUrl = URI("https://kotl.in/disable-native-cache"),
+            )
         }
     }
 
