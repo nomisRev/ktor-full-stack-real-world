@@ -99,7 +99,7 @@ class ArticleRepository(
                 val articleId = row[Articles.id].value
 
                 val tags = getTags(articleId)
-                    .sortedWith { a, b -> if (a == tag) -1 else 1 }
+                    .sortedWith { a, _ -> if (a == tag) -1 else 1 }
 
                 val favoritesCount = getFavoritesCount(articleId)
 
@@ -199,18 +199,15 @@ class ArticleRepository(
         getArticleBySlug(newSlug, authorId)
     }
 
-    fun createArticle(authorId: Long, newArticle: NewArticle): Article? = transaction(database) {
+    fun createArticle(authorId: Long, newArticle: NewArticle): Article = transaction(database) {
         val slug = generateSlug(newArticle.title)
 
-        val now = Clock.System.now()
         val insert = Articles.insertReturning(listOf(Articles.id, Articles.createdAt, Articles.updatedAt)) {
             it[this.slug] = slug
             it[title] = newArticle.title
             it[description] = newArticle.description
             it[body] = newArticle.body
             it[this.authorId] = authorId
-            it[createdAt] = now
-            it[updatedAt] = now
         }.single()
 
         val tagIds = newArticle.tagList.map { tagName ->
@@ -245,8 +242,8 @@ class ArticleRepository(
             description = newArticle.description,
             body = newArticle.body,
             tagList = newArticle.tagList,
-            createdAt = now,
-            updatedAt = now,
+            createdAt = insert[Articles.createdAt],
+            updatedAt = insert[Articles.updatedAt],
             favorited = false,
             favoritesCount = 0,
             author = authorProfile
