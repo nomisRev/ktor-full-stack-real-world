@@ -52,7 +52,9 @@ object PostgresContainer {
             cachePrepStmts = true,
             prepStmtCacheSize = 250,
             prepStmtCacheSqlLimit = 2048,
-            locations = "classpath:db/migration",
-            baselineOnMigrate = true
+            migrations = DatabaseConfig.Migrations(
+                locations = "classpath:db/migration",
+                baselineOnMigrate = true
+            )
         )
 }

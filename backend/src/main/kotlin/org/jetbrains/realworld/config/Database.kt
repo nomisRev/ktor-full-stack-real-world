@@ -25,13 +25,18 @@ data class DatabaseConfig(
     val cachePrepStmts: Boolean,
     val prepStmtCacheSize: Int,
     val prepStmtCacheSqlLimit: Int,
-    val locations: String,
-    val baselineOnMigrate: Boolean,
-)
+    val migrations: Migrations,
+) {
+    @Serializable
+    data class Migrations(
+        val locations: String,
+        val baselineOnMigrate: Boolean,
+    )
+}
 
 fun Application.setupDatabase(config: DatabaseConfig): Database {
     val dataSource = dataSource(config)
-    migrate(dataSource, config)
+    migrate(dataSource, config.migrations)
     val database = Database.connect(dataSource)
 
     monitor.subscribe(ApplicationStopped) {
@@ -54,7 +59,7 @@ fun dataSource(config: DatabaseConfig): HikariDataSource =
         addDataSourceProperty("prepStmtCacheSqlLimit", config.prepStmtCacheSqlLimit.toString())
     })
 
-fun migrate(dataSource: HikariDataSource, config: DatabaseConfig): MigrateResult =
+fun migrate(dataSource: HikariDataSource, config: DatabaseConfig.Migrations): MigrateResult =
     Flyway.configure()
         .dataSource(dataSource)
         .locations(config.locations)

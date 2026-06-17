@@ -25,11 +25,8 @@ kotlin {
             commonWebpackConfig {
                 outputFileName = "webApp.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    }
+                    static(rootDirPath)
+                    static(projectDirPath, true)
                 }
             }
         }
@@ -39,7 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.app.shared)
-            implementation(compose.ui)
+            implementation(libs.ui)
         }
     }
 }

@@ -1,20 +1,25 @@
 [versions]
+componentsResources = "1.11.1"
 exposed = "1.3.0"
+foundation = "1.11.1"
 hikaricp = "7.1.0"
 kotlin = "2.4.0"
 logback = "1.5.34"
+material = "1.11.1"
+materialIconsExtended = "1.7.3"
 navigationCompose = "2.10.0-alpha02"
 postgres = "42.7.11"
 prometheus = "1.17.0"
 flyway = "12.8.1"
+runtime = "1.11.1"
 testcontainers = "2.0.5"
 bouncycastle = "1.84"
 agp = "9.2.1"
-android-compileSdk = "36"
+android-compileSdk = "37"
 android-minSdk = "26"
-android-targetSdk = "35"
+android-targetSdk = "37"
 androidx-activityCompose = "1.13.0"
-androidx-lifecycle = "2.11.0-beta01"
+androidx-lifecycle = "2.11.0-beta02"
 androidx-core-ktx = "1.15.0"
 androidx-espresso-core = "3.6.1"
 androidx-test-junit = "1.2.1"
@@ -23,9 +28,14 @@ androidx-security-crypto = "1.1.0"
 compose-multiplatform = "1.11.1"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
+uiToolingPreview = "1.11.1"
 
 [libraries]
+components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
+foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "foundation" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+material = { module = "org.jetbrains.compose.material:material", version.ref = "material" }
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "prometheus" }
 
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
@@ -37,9 +47,10 @@ flyway = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "fl
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -49,12 +60,14 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "uiToolingPreview" }
+ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "uiToolingPreview" }
+ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
 
 [bundles]
 testing = [
     "kotlin-test-junit",
     "testcontainers-core",
-    "testcontainers-junit",
     "testcontainers-postgresql"
 ]
 

@@ -8,6 +8,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMessageBuilder
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.config.mergeWith
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
@@ -17,6 +18,16 @@ fun withApp(test: suspend HttpClient.() -> Unit) =
         environment {
             config = ApplicationConfig("application.yaml")
                 .mergeWith(PostgresContainer.getMapAppConfig())
+                .mergeWith(
+                    MapApplicationConfig(
+
+                        "jwt.secret" to "s",
+                        "jwt.issuer" to "i",
+                        "jwt.audience" to "a",
+                        "jwt.realm" to "r",
+                        "jwt.expirationMillis" to "3600"
+                    )
+                )
         }
         val client = createClient {
             install(ContentNegotiation) {

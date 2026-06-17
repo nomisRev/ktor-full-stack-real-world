@@ -12,7 +12,7 @@ abstract class DatabaseSpec {
     fun setup() {
         val config = PostgresContainer.getDatabaseConfig()
         val dataSource = dataSource(config)
-        migrate(dataSource, config)
+        migrate(dataSource, config.migrations)
         database = Database.connect(dataSource)
     }
 }
