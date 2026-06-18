@@ -3,7 +3,6 @@ package org.jetbrains.auth
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import android.util.Base64
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -20,6 +19,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import kotlin.io.encoding.Base64
 
 private const val SECURE_PREFS_NAME = "realworld_secure_auth"
 private const val TOKEN_KEY = "auth_token"
@@ -49,13 +49,19 @@ private class AndroidSecureTokenStorage(context: Context) : SecureTokenStorage {
             .first()
             ?: return@withContext null
 
-        runCatching { cipher.decrypt(encryptedToken) }
-            .onFailure { error ->
-                if (error is GeneralSecurityException || error is IllegalArgumentException) {
+        try {
+            cipher.decrypt(encryptedToken)
+        } catch (e: Exception) {
+            when (e) {
+                is GeneralSecurityException,
+                is IllegalArgumentException -> {
                     dataStore.edit { preferences -> preferences.remove(authTokenPreferenceKey) }
+                    null
                 }
+
+                else -> throw e
             }
-            .getOrNull()
+        }
     }
 
     override suspend fun saveToken(token: String) {
@@ -87,19 +93,19 @@ private object AndroidTokenCipher {
 
         val encryptedToken = cipher.doFinal(token.toByteArray(Charsets.UTF_8))
         val payload = cipher.iv + encryptedToken
-        return Base64.encodeToString(payload, Base64.NO_WRAP)
+        return Base64.encode(payload)
     }
 
     fun decrypt(encryptedToken: String): String {
-        val payload = Base64.decode(encryptedToken, Base64.NO_WRAP)
+        val payload = Base64.decode(encryptedToken)
         require(payload.size > GCM_IV_SIZE_BYTES) { "Encrypted token payload is too short." }
 
         val iv = payload.copyOfRange(0, GCM_IV_SIZE_BYTES)
         val cipherText = payload.copyOfRange(GCM_IV_SIZE_BYTES, payload.size)
-        val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
-        cipher.init(Cipher.DECRYPT_MODE, getOrCreateSecretKey(), GCMParameterSpec(GCM_TAG_SIZE_BITS, iv))
 
-        return cipher.doFinal(cipherText).toString(Charsets.UTF_8)
+        return Cipher.getInstance(AES_GCM_TRANSFORMATION).apply {
+            init(Cipher.DECRYPT_MODE, getOrCreateSecretKey(), GCMParameterSpec(GCM_TAG_SIZE_BITS, iv))
+        }.doFinal(cipherText).toString(Charsets.UTF_8)
     }
 
     @Synchronized
@@ -108,18 +114,18 @@ private object AndroidTokenCipher {
             return entry.secretKey
         }
 
-        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
-        val keySpec = KeyGenParameterSpec.Builder(
-            KEY_ALIAS,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-        )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setKeySize(AES_KEY_SIZE_BITS)
-            .setRandomizedEncryptionRequired(true)
-            .build()
-
-        keyGenerator.init(keySpec)
-        return keyGenerator.generateKey()
+        return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE).apply {
+            init(
+                KeyGenParameterSpec.Builder(
+                    KEY_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+                )
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setKeySize(AES_KEY_SIZE_BITS)
+                    .setRandomizedEncryptionRequired(true)
+                    .build()
+            )
+        }.generateKey()
     }
 }
