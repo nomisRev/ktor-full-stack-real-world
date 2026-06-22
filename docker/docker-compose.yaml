@@ -21,6 +21,20 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  db-seed:
+    image: postgres:16-alpine
+    container_name: realworld-db-seed
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ktor_password
+    volumes:
+      - ./manual-test-data.sql:/seed/manual-test-data.sql:ro
+      - ./db-seed.sh:/seed/db-seed.sh:ro
+    entrypoint: ["/bin/sh", "/seed/db-seed.sh"]
+    restart: "no"
+
 volumes:
   postgres_data:
     driver: local

@@ -12,7 +12,7 @@ database:
     name: "ktor_sample"
     username: "ktor_user"
     password: "ktor_password"
-    maxPoolSize: 20
+    maxPoolSize: 10
     cachePrepStmts: true
     prepStmtCacheSize: 250
     prepStmtCacheSqlLimit: 2048

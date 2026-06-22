@@ -112,6 +112,28 @@ docker-compose up -d
 
 This will start a PostgreSQL instance with the configuration specified in the `docker-compose.yaml` file.
 
+### Manual Test Data
+
+For local manual testing, there is a seeded dataset at `backend/src/main/resources/db/manual-test-data.sql`.
+
+It adds:
+- 10 demo users
+- 30 articles
+- tags, follows, favorites, and comments
+
+Default password for all demo users: `password123`
+
+The `docker-compose.yaml` file includes a `db-seed` service that waits for the Flyway-created schema and then imports this dataset.
+
+Important: Flyway migrations run in the backend application, so you still need to start the backend first (or otherwise ensure the schema already exists) before the seed service can succeed.
+
+If you want to load it manually, for example:
+
+```bash
+psql postgresql://ktor_user:ktor_password@localhost:5432/ktor_sample \
+  -f backend/src/main/resources/db/manual-test-data.sql
+```
+
 ### Running the Backend
 
 To build and run the backend, use one of the following Gradle tasks:
