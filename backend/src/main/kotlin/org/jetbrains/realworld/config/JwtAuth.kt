@@ -13,6 +13,7 @@ import org.jetbrains.realworld.error.GenericErrorModel
 import org.jetbrains.realworld.user.User
 import org.jetbrains.realworld.user.UserService
 import java.util.*
+import kotlin.time.Duration
 
 @Serializable
 data class JwtConfig(
@@ -20,7 +21,7 @@ data class JwtConfig(
     val issuer: String,
     val audience: String,
     val realm: String,
-    val expirationMillis: Long,
+    val expiration: Duration,
 )
 
 data class UserJWT(val userId: Long, val user: User)

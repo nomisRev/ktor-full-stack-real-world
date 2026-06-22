@@ -2,22 +2,16 @@ package org.jetbrains.auth
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import kotlinx.browser.window
 
-private const val TOKEN_KEY = "org.jetbrains.realworld.auth.token"
-
-// TODO: This needs to become session based
+// Compose Web should not persist bearer tokens in browser storage.
+// The backend now uses an httpOnly session cookie for web authentication.
 @Composable
 actual fun rememberSecureTokenStorage(): SecureTokenStorage = remember { WasmSecureTokenStorage() }
 
 private class WasmSecureTokenStorage : SecureTokenStorage {
-    override suspend fun readToken(): String? = window.localStorage.getItem(TOKEN_KEY)
+    override suspend fun readToken(): String? = null
 
-    override suspend fun saveToken(token: String) {
-        window.localStorage.setItem(TOKEN_KEY, token)
-    }
+    override suspend fun saveToken(token: String) = Unit
 
-    override suspend fun clearToken() {
-        window.localStorage.removeItem(TOKEN_KEY)
-    }
+    override suspend fun clearToken() = Unit
 }

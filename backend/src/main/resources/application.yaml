@@ -25,4 +25,4 @@ jwt:
     issuer: "realworld-api"
     audience: "realworld-clients"
     realm: "realworld"
-    expiration: 3600000  # 1 hour in milliseconds
+    expiration: PT1H

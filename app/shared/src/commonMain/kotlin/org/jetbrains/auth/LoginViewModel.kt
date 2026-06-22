@@ -21,6 +21,7 @@ import org.jetbrains.realworld.user.UsersResource
 
 class LoginViewModel(
     private val client: HttpClient,
+    private val authRepository: AuthRepository,
     private val onLoginSuccess: () -> Unit
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Initial)
@@ -43,6 +44,8 @@ class LoginViewModel(
 
                 if (response.status.isSuccess()) {
                     val userResponse = response.body<UserResponse>()
+                    val token = requireNotNull(userResponse.user.token)
+                    authRepository.saveToken(token)
                     _uiState.value = LoginUiState.Success(userResponse.user.username)
                     onLoginSuccess()
                 } else {

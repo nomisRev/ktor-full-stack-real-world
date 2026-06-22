@@ -152,7 +152,7 @@ class UserService(
             .withIssuer(jwtConfig.issuer)
             .withAudience(jwtConfig.audience)
             .withClaim("user_id", userId)
-            .withExpiresAt(Date(System.currentTimeMillis() + jwtConfig.expirationMillis))
+            .withExpiresAt(Date(System.currentTimeMillis() + jwtConfig.expiration.inWholeMilliseconds))
             .sign(Algorithm.HMAC256(jwtConfig.secret))
 
     private fun createAndUpdateToken(userId: Long): String {

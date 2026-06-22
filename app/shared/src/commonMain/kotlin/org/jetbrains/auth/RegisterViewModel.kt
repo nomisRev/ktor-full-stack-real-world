@@ -21,6 +21,7 @@ import org.jetbrains.realworld.user.UsersResource
 
 class RegisterViewModel(
     private val client: HttpClient,
+    private val authRepository: AuthRepository,
     private val onRegistrationSuccess: () -> Unit
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<RegisterUiState>(RegisterUiState.Initial)
@@ -44,6 +45,8 @@ class RegisterViewModel(
 
                 if (response.status.isSuccess()) {
                     val userResponse = response.body<UserResponse>()
+                    val token = requireNotNull(userResponse.user.token)
+                    authRepository.saveToken(token)
                     _uiState.value = RegisterUiState.Success(userResponse.user.username)
                     onRegistrationSuccess()
                 } else {

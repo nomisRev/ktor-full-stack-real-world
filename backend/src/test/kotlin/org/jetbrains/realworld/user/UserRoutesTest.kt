@@ -3,7 +3,6 @@ package org.jetbrains.realworld.user
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.coroutines.delay
 import org.jetbrains.realworld.withApp
 import kotlin.test.*
 import kotlin.uuid.ExperimentalUuidApi
