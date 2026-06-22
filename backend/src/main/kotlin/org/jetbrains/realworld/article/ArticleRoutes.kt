@@ -64,8 +64,7 @@ fun Route.articleRoutes(articleRepository: ArticleRepository) {
 
             val article = articleRepository.createArticle(principal.userId, request.article)
 
-            if (article != null) call.respond(HttpStatusCode.Created, SingleArticleResponse(article))
-            else call.respond(HttpStatusCode.UnprocessableEntity, GenericErrorModel("article could not be created"))
+            call.respond(HttpStatusCode.Created, SingleArticleResponse(article))
         }
 
         put<ArticlesResource.BySlug> { resource ->

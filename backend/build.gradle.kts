@@ -16,6 +16,20 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xcontext-sensitive-resolution",
+            "-Xreturn-value-checker=full",
+            "-Xcollection-literals",
+            "-Xname-based-destructuring=complete",
+        )
+        allWarningsAsErrors = true
+        extraWarnings = true
+    }
+}
+
 @Suppress("OPT_IN_USAGE")
 powerAssert {
     functions = listOf("kotlin.test.assertEquals")

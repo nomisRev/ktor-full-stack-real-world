@@ -26,7 +26,7 @@ fun Application.dependencies(config: Config): Dependencies {
     val database = setupDatabase(config.database)
     val userService = UserService(config.jwt, database, Argon2Hasher())
     val profileRepository = ProfileRepository(database)
-    val articleRepository = ArticleRepository(database, profileRepository)
-    val commentRepository = CommentRepository(database, profileRepository)
+    val articleRepository = ArticleRepository(database)
+    val commentRepository = CommentRepository(database)
     return Dependencies(config.jwt, userService, profileRepository, commentRepository, articleRepository)
 }

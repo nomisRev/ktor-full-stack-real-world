@@ -1,6 +1,6 @@
 package org.jetbrains.realworld
 
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import io.ktor.server.config.MapApplicationConfig
 import org.jetbrains.realworld.config.DatabaseConfig
@@ -12,8 +12,8 @@ object PostgresContainer {
      * At the end of the testsuite the Ryuk container started by Testcontainers will stop the container.
      * https://java.testcontainers.org/test_framework_integration/manual_lifecycle_control/
      */
-    private val container: PostgreSQLContainer<Nothing> by lazy {
-        PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:16-alpine"))
+    private val container: PostgreSQLContainer by lazy {
+        PostgreSQLContainer(DockerImageName.parse("postgres:16-alpine"))
             .apply {
                 withDatabaseName("ktor_sample")
                 withUsername("ktor_user")

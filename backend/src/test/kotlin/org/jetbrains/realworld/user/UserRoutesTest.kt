@@ -97,7 +97,7 @@ class UserRoutesTest {
     @Test
     fun testDuplicateRegistration() = withApp {
         val newUser = newTestUser()
-        createUser(newUser)
+        val _ = createUser(newUser)
 
         val duplicateResponse = post("/api/users") {
             contentType(ContentType.Application.Json)

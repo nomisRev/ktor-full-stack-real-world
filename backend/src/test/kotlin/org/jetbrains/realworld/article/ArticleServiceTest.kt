@@ -5,7 +5,6 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.realworld.DatabaseSpec
 import org.jetbrains.realworld.profile.Follows
-import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Argon2Hasher
 import org.jetbrains.realworld.user.Users
 import kotlin.test.Test
@@ -14,13 +13,10 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 class ArticleServiceTest : DatabaseSpec() {
-    private val profileRepository by lazy { ProfileRepository(database) }
-    private val service by lazy { ArticleRepository(database, profileRepository) }
+    private val service by lazy { ArticleRepository(database) }
     private val hasher by lazy { Argon2Hasher() }
 
     private suspend fun createTestUser(
@@ -51,7 +47,7 @@ class ArticleServiceTest : DatabaseSpec() {
         tagList: List<String> = listOf("test", "article")
     ): Article {
         val newArticle = NewArticle(title, description, body, tagList)
-        return service.createArticle(authorId, newArticle)!!
+        return service.createArticle(authorId, newArticle)
     }
 
     @Test
@@ -164,12 +160,12 @@ class ArticleServiceTest : DatabaseSpec() {
         val tag2 = Uuid.random().toString()
         val tag3 = Uuid.random().toString()
         val allTag = Uuid.random().toString()
-        createTestArticle(authorId, tagList = listOf(tag1, allTag))
-        createTestArticle(authorId, tagList = listOf(tag2, allTag))
-        createTestArticle(authorId, tagList = listOf(tag3, allTag))
+        val _ = createTestArticle(authorId, tagList = listOf(tag1, allTag))
+        val _ = createTestArticle(authorId, tagList = listOf(tag2, allTag))
+        val _ = createTestArticle(authorId, tagList = listOf(tag3, allTag))
 
         val limit = 2
-        val (allArticles, totalCount) = service.getArticles(
+        val (articles, articlesCount) = service.getArticles(
             tag = allTag,
             author = null,
             favorited = null,
@@ -177,18 +173,18 @@ class ArticleServiceTest : DatabaseSpec() {
             offset = 0,
             currentUserId = null
         )
-        assertEquals(limit, allArticles.size, "Should retrieve at least 3 articles")
-        assertEquals(3, totalCount, "Total count should be 3")
+        assertEquals(limit, articles.size, "Should retrieve at least 3 articles")
+        assertEquals(3, articlesCount, "Total count should be 3")
     }
 
     @Test
     fun `get articles for author`() = runBlocking {
         val username = "${Uuid.random()}-author"
         val authorId = createTestUser(username = username)
-        repeat(3) { createTestArticle(authorId) }
+        repeat(3) { val _ = createTestArticle(authorId) }
         val limit = 2
 
-        val (allArticles, totalCount) = service.getArticles(
+        val (articles, articlesCount) = service.getArticles(
             tag = null,
             author = username,
             favorited = null,
@@ -197,8 +193,8 @@ class ArticleServiceTest : DatabaseSpec() {
             currentUserId = null
         )
 
-        assertEquals(limit, allArticles.size, "Should retrieve at least 3 articles")
-        assertEquals(3, totalCount, "Total count should be 3")
+        assertEquals(limit, articles.size, "Should retrieve at least 3 articles")
+        assertEquals(3, articlesCount, "Total count should be 3")
     }
 
     @Test
@@ -209,7 +205,7 @@ class ArticleServiceTest : DatabaseSpec() {
         val article2 = createTestArticle(followedId)
 
         val otherId = createTestUser()
-        createTestArticle(otherId)
+        val _ = createTestArticle(otherId)
 
         transaction(database) {
             Follows.insert {
@@ -221,12 +217,12 @@ class ArticleServiceTest : DatabaseSpec() {
         val feedArticle2 = article2.copy(author = article2.author.copy(following = true)).withoutBody()
 
         val actualArticles = setOf(feedArticle1, feedArticle2)
-        val (feedArticles, _) = service.getFeed(followerId, 20, 0)
-        assertEquals(actualArticles, feedArticles.toSet())
+        val original = service.getFeed(followerId, 20, 0)
+        assertEquals(actualArticles, original.articles.toSet())
 
-        val (limitedFeed, _) = service.getFeed(followerId, limit = 1, offset = 0)
-        assert(actualArticles.containsAll(limitedFeed))
-        assert(limitedFeed.size == 1)
+        val limited = service.getFeed(followerId, limit = 1, offset = 0)
+        assert(actualArticles.containsAll(limited.articles))
+        assert(limited.articles.size == 1)
     }
 
     @Test

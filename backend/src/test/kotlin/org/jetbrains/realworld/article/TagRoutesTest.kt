@@ -26,9 +26,9 @@ class TagRoutesTest {
         val tag2 = "tag-${Uuid.random()}"
         val tag3 = "tag-${Uuid.random()}"
 
-        createArticle(user, "Article with tag1", tagList = listOf(tag1))
-        createArticle(user, "Article with tag2", tagList = listOf(tag2))
-        createArticle(user, "Article with tag3", tagList = listOf(tag3))
+        val _ = createArticle(user, "Article with tag1", tagList = listOf(tag1))
+        val _ = createArticle(user, "Article with tag2", tagList = listOf(tag2))
+        val _ = createArticle(user, "Article with tag3", tagList = listOf(tag3))
 
         // Test the /tags endpoint
         val response = get("/api/tags") {

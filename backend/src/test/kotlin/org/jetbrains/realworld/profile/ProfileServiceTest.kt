@@ -54,7 +54,7 @@ class ProfileServiceTest : DatabaseSpec() {
         val bio = "Test bio"
         val image = "https://example.com/image.jpg"
 
-        createTestUser(username = username, bio = bio, image = image)
+        val _ = createTestUser(username = username, bio = bio, image = image)
 
         val profile = service.getProfileOrNull(username)
         assertNotNull(profile, "Profile should not be null")
@@ -70,7 +70,7 @@ class ProfileServiceTest : DatabaseSpec() {
         val followedUsername = "followed"
 
         val followerId = createTestUser(username = followerUsername)
-        createTestUser(username = followedUsername)
+        val _ = createTestUser(username = followedUsername)
 
         val profile = service.followUser(followedUsername, followerId)
         assertNotNull(profile, "Profile should not be null")
@@ -100,7 +100,7 @@ class ProfileServiceTest : DatabaseSpec() {
         val followedUsername = "unfollowed"
 
         val followerId = createTestUser(username = followerUsername)
-        createTestUser(username = followedUsername)
+        val _ = createTestUser(username = followedUsername)
 
         // First follow the user
         val followedProfile = service.followUser(followedUsername, followerId)

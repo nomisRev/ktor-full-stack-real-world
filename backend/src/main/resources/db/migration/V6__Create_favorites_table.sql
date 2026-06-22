@@ -4,3 +4,5 @@ CREATE TABLE IF NOT EXISTS favorites (
     created_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
     PRIMARY KEY (user_id, article_id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_favorites_article_id ON favorites (article_id);

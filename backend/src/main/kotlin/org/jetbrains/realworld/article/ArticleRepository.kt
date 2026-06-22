@@ -1,11 +1,16 @@
 package org.jetbrains.realworld.article
 
+import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
+import org.jetbrains.exposed.v1.core.LongColumnType
 import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryBuilder
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
 import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
@@ -14,15 +19,12 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.realworld.profile.Follows
 import org.jetbrains.realworld.profile.Profile
-import org.jetbrains.realworld.profile.ProfileRepository
 import org.jetbrains.realworld.user.Users
 import kotlin.time.Clock
 
@@ -31,8 +33,9 @@ object Articles : LongIdTable("articles", "article_id") {
     val title = varchar("title", 255)
     val description = text("description")
     val body = text("body")
-    val authorId = reference("author_id", Users)
+    val authorId = reference("author_id", Users).uniqueIndex("idx_articles_author_id")
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+        .uniqueIndex("idx_articles_created_at")
     val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 }
 
@@ -42,24 +45,36 @@ object Tags : LongIdTable("tags", "tag_id") {
 
 object ArticleTags : Table("article_tags") {
     val articleId = reference("article_id", Articles)
-    val tagId = reference("tag_id", Tags)
+    val tagId = reference("tag_id", Tags).uniqueIndex("idx_article_tags_tag_id")
 
     override val primaryKey = PrimaryKey(articleId, tagId)
 }
 
 object Favorites : Table("favorites") {
     val userId = reference("user_id", Users)
-    val articleId = reference("article_id", Articles)
+    val articleId = reference("article_id", Articles).uniqueIndex("idx_favorites_article_id")
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
 
     override val primaryKey = PrimaryKey(userId, articleId)
 }
 
+private object TotalCount : ExpressionWithColumnType<Long>() {
+    override val columnType = LongColumnType()
 
-class ArticleRepository(
-    private val database: Database,
-    private val profileRepository: ProfileRepository
-) {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+        queryBuilder.append("COUNT(*) OVER ()")
+    }
+}
+
+private object FavoriteCount : ExpressionWithColumnType<Long>() {
+    override val columnType = LongColumnType()
+
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+        queryBuilder.append("COUNT(*)")
+    }
+}
+
+class ArticleRepository(private val database: Database) {
 
     fun getArticles(
         tag: String?,
@@ -84,46 +99,61 @@ class ArticleRepository(
                     .where { Users.username eq favorited }
                 ) else Op.TRUE
 
-        val query = Articles
+        val rows = Articles
             .innerJoin(Users) { Articles.authorId eq Users.id }
-            .selectAll()
+            .select(
+                Articles.id,
+                Articles.slug,
+                Articles.title,
+                Articles.description,
+                Articles.createdAt,
+                Articles.updatedAt,
+                Users.id,
+                Users.username,
+                Users.bio,
+                Users.image,
+                TotalCount
+            )
             .where { whereTag and whereAuthor and whereFavorited }
-
-        val totalCount = query.count()
-
-        val articles = query
             .limit(limit)
             .offset(offset.toLong())
             .orderBy(Articles.createdAt, SortOrder.DESC)
-            .map { row ->
-                val articleId = row[Articles.id].value
+            .toList()
 
-                val tags = getTags(articleId)
-                    .sortedWith { a, _ -> if (a == tag) -1 else 1 }
+        val totalCount = rows.firstOrNull()?.get(TotalCount) ?: 0L
+        val articleIds = rows.map { it[Articles.id].value }
+        val authorIds = rows.map { it[Users.id].value }.toSet()
+        val tagsByArticleId = fetchTags(articleIds)
+        val favoritesCountByArticleId = fetchFavoritesCounts(articleIds)
+        val favoritedArticleIds =
+            if (currentUserId != null) fetchFavoritedArticleIds(articleIds, currentUserId) else emptySet()
+        val followingAuthorIds =
+            if (currentUserId != null) fetchFollowingAuthorIds(authorIds, currentUserId) else emptySet()
 
-                val favoritesCount = getFavoritesCount(articleId)
+        val articles = rows.map { row ->
+            val articleId = row[Articles.id].value
+            val authorId = row[Users.id].value
 
-                val favorited = if (currentUserId != null) {
-                    Favorites
-                        .select(Favorites.userId)
-                        .where { (Favorites.articleId eq articleId) and (Favorites.userId eq currentUserId) }
-                        .count() > 0
-                } else false
+            val articleTags = tagsByArticleId[articleId].orEmpty()
+            val orderedTags = if (tag != null) articleTags.sortedWith(compareBy { it != tag }) else articleTags
 
-                val authorProfile = profileRepository.getProfileOrNull(row[Users.username], currentUserId)!!
-
-                ArticleWithoutBody(
-                    slug = row[Articles.slug],
-                    title = row[Articles.title],
-                    description = row[Articles.description],
-                    tagList = tags,
-                    createdAt = row[Articles.createdAt],
-                    updatedAt = row[Articles.updatedAt],
-                    favorited = favorited,
-                    favoritesCount = favoritesCount.toInt(),
-                    author = authorProfile
+            ArticleWithoutBody(
+                slug = row[Articles.slug],
+                title = row[Articles.title],
+                description = row[Articles.description],
+                tagList = orderedTags,
+                createdAt = row[Articles.createdAt],
+                updatedAt = row[Articles.updatedAt],
+                favorited = articleId in favoritedArticleIds,
+                favoritesCount = favoritesCountByArticleId[articleId]?.toInt() ?: 0,
+                author = Profile(
+                    username = row[Users.username],
+                    bio = row[Users.bio],
+                    image = row[Users.image],
+                    following = authorId in followingAuthorIds
                 )
-            }
+            )
+        }
 
         MultipleArticlesResponse(articles, totalCount.toInt())
     }
@@ -133,41 +163,60 @@ class ArticleRepository(
         limit: Int,
         offset: Int
     ): MultipleArticlesResponse = transaction(database) {
+        addLogger(StdOutSqlLogger)
         val following = Follows.select(Follows.followedId)
             .where { Follows.followerId eq currentUserId }
 
-        val query = Articles
+        val rows = Articles
             .innerJoin(Users) { Articles.authorId eq Users.id }
-            .selectAll()
+            .select(
+                Articles.id,
+                Articles.slug,
+                Articles.title,
+                Articles.description,
+                Articles.createdAt,
+                Articles.updatedAt,
+                Users.id,
+                Users.username,
+                Users.bio,
+                Users.image,
+                TotalCount
+            )
             .where { Articles.authorId inSubQuery following }
-
-        val totalCount = query.count()
-
-        val articles = query.limit(limit)
+            .limit(limit)
             .offset(offset.toLong())
             .orderBy(Articles.createdAt, SortOrder.DESC)
-            .map { row ->
-                val articleId = row[Articles.id].value
+            .toList()
 
-                val tags = getTags(articleId)
-                val favoritesCount = getFavoritesCount(articleId)
+        val totalCount = rows.firstOrNull()?.get(TotalCount) ?: 0L
+        val articleIds = rows.map { it[Articles.id].value }
+        val authorIds = rows.map { it[Users.id].value }.toSet()
+        val tagsByArticleId = fetchTags(articleIds)
+        val favoritesCountByArticleId = fetchFavoritesCounts(articleIds)
+        val favoritedArticleIds = fetchFavoritedArticleIds(articleIds, currentUserId)
+        val followingAuthorIds = fetchFollowingAuthorIds(authorIds, currentUserId)
 
-                val favorited = isFavorited(articleId, currentUserId)
+        val articles = rows.map { row ->
+            val articleId = row[Articles.id].value
+            val authorId = row[Users.id].value
 
-                val authorProfile = profileRepository.getProfileOrNull(row[Users.username], currentUserId)!!
-
-                ArticleWithoutBody(
-                    slug = row[Articles.slug],
-                    title = row[Articles.title],
-                    description = row[Articles.description],
-                    tagList = tags,
-                    createdAt = row[Articles.createdAt],
-                    updatedAt = row[Articles.updatedAt],
-                    favorited = favorited,
-                    favoritesCount = favoritesCount.toInt(),
-                    author = authorProfile
+            ArticleWithoutBody(
+                slug = row[Articles.slug],
+                title = row[Articles.title],
+                description = row[Articles.description],
+                tagList = tagsByArticleId[articleId].orEmpty(),
+                createdAt = row[Articles.createdAt],
+                updatedAt = row[Articles.updatedAt],
+                favorited = articleId in favoritedArticleIds,
+                favoritesCount = favoritesCountByArticleId[articleId]?.toInt() ?: 0,
+                author = Profile(
+                    username = row[Users.username],
+                    bio = row[Users.bio],
+                    image = row[Users.image],
+                    following = authorId in followingAuthorIds
                 )
-            }
+            )
+        }
 
         MultipleArticlesResponse(articles, totalCount.toInt())
     }
@@ -210,15 +259,21 @@ class ArticleRepository(
             it[this.authorId] = authorId
         }.single()
 
-        val tagIds = newArticle.tagList.map { tagName ->
-            val existingTagId = Tags.select(Tags.id)
-                .where { Tags.name eq tagName }
-                .singleOrNull()?.get(Tags.id)?.value
-
-            existingTagId ?: Tags.insertAndGetId {
-                it[name] = tagName
-            }.value
+        val tagNames = newArticle.tagList.distinct()
+        if (tagNames.isNotEmpty()) {
+            Tags.batchInsert(tagNames, ignore = true, shouldReturnGeneratedValues = false) { tagName ->
+                this[Tags.name] = tagName
+            }
         }
+
+        val tagIdsByName = if (tagNames.isEmpty()) {
+            emptyMap()
+        } else {
+            Tags.select(Tags.id, Tags.name)
+                .where { Tags.name inList tagNames }
+                .associate { it[Tags.name] to it[Tags.id].value }
+        }
+        val tagIds = tagNames.map { tagName -> tagIdsByName.getValue(tagName) }
 
         ArticleTags.batchInsert(tagIds, shouldReturnGeneratedValues = false) { tagId ->
             this[ArticleTags.articleId] = insert[Articles.id]
@@ -241,7 +296,7 @@ class ArticleRepository(
             title = newArticle.title,
             description = newArticle.description,
             body = newArticle.body,
-            tagList = newArticle.tagList,
+            tagList = tagNames,
             createdAt = insert[Articles.createdAt],
             updatedAt = insert[Articles.updatedAt],
             favorited = false,
@@ -256,23 +311,19 @@ class ArticleRepository(
             .select(
                 Articles.id, Articles.slug, Articles.title, Articles.description, Articles.body,
                 Articles.createdAt, Articles.updatedAt, Articles.authorId,
-                Users.username, Users.bio, Users.image
+                Users.id, Users.username, Users.bio, Users.image
             )
             .where { Articles.slug eq slug }
             .singleOrNull() ?: return@transaction null
 
         val articleId = row[Articles.id].value
-        val tags = getTags(articleId)
-        val favoritesCount = getFavoritesCount(articleId)
-
-        val favorited = if (currentUserId != null) {
-            Favorites
-                .select(Favorites.userId)
-                .where { (Favorites.articleId eq articleId) and (Favorites.userId eq currentUserId) }
-                .count() > 0
-        } else false
-
-        val authorProfile = profileRepository.getProfileOrNull(row[Users.username], currentUserId)!!
+        val authorId = row[Users.id].value
+        val tags = fetchTags(listOf(articleId))[articleId].orEmpty()
+        val favoritesCount = fetchFavoritesCounts(listOf(articleId))[articleId] ?: 0L
+        val favorited = if (currentUserId != null) articleId in fetchFavoritedArticleIds(
+            listOf(articleId),
+            currentUserId
+        ) else false
 
         Article(
             slug = row[Articles.slug],
@@ -284,7 +335,12 @@ class ArticleRepository(
             updatedAt = row[Articles.updatedAt],
             favorited = favorited,
             favoritesCount = favoritesCount.toInt(),
-            author = authorProfile
+            author = Profile(
+                username = row[Users.username],
+                bio = row[Users.bio],
+                image = row[Users.image],
+                following = currentUserId != null && authorId in fetchFollowingAuthorIds(setOf(authorId), currentUserId)
+            )
         )
     }
 
@@ -343,18 +399,52 @@ class ArticleRepository(
     private fun isFavorited(articleId: Long, currentUserId: Long): Boolean = Favorites
         .select(Favorites.userId)
         .where { (Favorites.articleId eq articleId) and (Favorites.userId eq currentUserId) }
-        .count() > 0
+        .limit(1)
+        .singleOrNull() != null
 
-    private fun getFavoritesCount(articleId: Long): Long = Favorites
-        .select(Favorites.userId)
-        .where { Favorites.articleId eq articleId }
-        .count()
+    private fun fetchFavoritedArticleIds(articleIds: Collection<Long>, currentUserId: Long): Set<Long> {
+        if (articleIds.isEmpty()) return emptySet()
 
-    private fun getTags(articleId: Long): List<String> = ArticleTags
-        .innerJoin(Tags) { ArticleTags.tagId eq Tags.id }
-        .select(Tags.name)
-        .where { ArticleTags.articleId eq articleId }
-        .map { it[Tags.name] }
+        return Favorites
+            .select(Favorites.articleId)
+            .where { (Favorites.userId eq currentUserId) and (Favorites.articleId inList articleIds) }
+            .map { it[Favorites.articleId].value }
+            .toSet()
+    }
+
+    private fun fetchFavoritesCounts(articleIds: Collection<Long>): Map<Long, Long> {
+        if (articleIds.isEmpty()) return emptyMap()
+
+        return Favorites
+            .select(Favorites.articleId, FavoriteCount)
+            .where { Favorites.articleId inList articleIds }
+            .groupBy(Favorites.articleId)
+            .associate { row -> row[Favorites.articleId].value to row[FavoriteCount] }
+    }
+
+    private fun fetchFollowingAuthorIds(authorIds: Collection<Long>, currentUserId: Long): Set<Long> {
+        if (authorIds.isEmpty()) return emptySet()
+
+        return Follows
+            .select(Follows.followedId)
+            .where { (Follows.followerId eq currentUserId) and (Follows.followedId inList authorIds) }
+            .map { it[Follows.followedId].value }
+            .toSet()
+    }
+
+    private fun fetchTags(articleIds: Collection<Long>): Map<Long, List<String>> {
+        if (articleIds.isEmpty()) return emptyMap()
+
+        val rows = ArticleTags
+            .innerJoin(Tags) { ArticleTags.tagId eq Tags.id }
+            .select(ArticleTags.articleId, Tags.name)
+            .where { ArticleTags.articleId inList articleIds }
+            .toList()
+
+        return rows
+            .groupBy { it[ArticleTags.articleId].value }
+            .mapValues { [_, rowsForArticle] -> rowsForArticle.map { row -> row[Tags.name] } }
+    }
 
     private fun generateSlug(title: String): String =
         title.lowercase()

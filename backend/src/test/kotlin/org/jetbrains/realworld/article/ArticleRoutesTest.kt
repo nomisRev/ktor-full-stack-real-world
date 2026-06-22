@@ -172,8 +172,8 @@ class ArticleRoutesTest {
     fun testGetArticles() = withApp {
         val user = createUser(newTestUser())
 
-        createArticle(user, "Article 1", tagList = listOf("tag1", "tag2"))
-        createArticle(user, "Article 2", tagList = listOf("tag2", "tag3"))
+        val _ = createArticle(user, "Article 1", tagList = listOf("tag1", "tag2"))
+        val _ = createArticle(user, "Article 2", tagList = listOf("tag2", "tag3"))
 
         val response = get("/api/articles") {
             contentType(ContentType.Application.Json)
@@ -214,7 +214,7 @@ class ArticleRoutesTest {
         val user = createUser(newTestUser())
 
         // Create an article with multiple tags, with "dragons" not as the first tag
-        val article = createArticle(user, "Dragon Training Article", tagList = listOf("training", "dragons"))
+        val _ = createArticle(user, "Dragon Training Article", tagList = listOf("training", "dragons"))
 
         // Retrieve the article by the "dragons" tag
         val response = get("/api/articles?tag=dragons") {
@@ -240,16 +240,16 @@ class ArticleRoutesTest {
         val follower = createUser(newTestUser())
         val followed = createUser(newTestUser())
 
-        val r = post("api/profiles/${followed.username}/follow") {
+        val _ = post("api/profiles/${followed.username}/follow") {
             contentType(ContentType.Application.Json)
             tokenAuth(follower.token!!)
         }
 
-        createArticle(followed, "Feed Article 1")
-        createArticle(followed, "Feed Article 2")
+        val _ = createArticle(followed, "Feed Article 1")
+        val _ = createArticle(followed, "Feed Article 2")
 
         val otherUser = createUser(newTestUser())
-        createArticle(otherUser, "Other Article")
+        val _ = createArticle(otherUser, "Other Article")
 
         val response = get("/api/articles/feed") {
             contentType(ContentType.Application.Json)

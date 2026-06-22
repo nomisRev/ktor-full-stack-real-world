@@ -13,7 +13,7 @@ class UserLoginValidationTest {
     fun testValidLogin() = withApp {
         // Create a user to login
         val validUser = newTestUser()
-        createUser(validUser)
+        val _ = createUser(validUser)
 
         val validLogin = UserLogin(
             email = validUser.email,

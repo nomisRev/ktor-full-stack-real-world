@@ -20,9 +20,8 @@ import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 class CommentServiceTest : DatabaseSpec() {
-    private val profileRepository by lazy { ProfileRepository(database) }
-    private val articleRepository by lazy { ArticleRepository(database, profileRepository) }
-    private val commentRepository by lazy { CommentRepository(database, profileRepository) }
+    private val articleRepository by lazy { ArticleRepository(database) }
+    private val commentRepository by lazy { CommentRepository(database) }
     private val hasher by lazy { Argon2Hasher() }
 
     private suspend fun createTestUser(
@@ -54,7 +53,7 @@ class CommentServiceTest : DatabaseSpec() {
         tagList: List<String> = listOf("test", "article")
     ): String {
         val newArticle = NewArticle(title, description, body, tagList)
-        return articleRepository.createArticle(authorId, newArticle)!!.slug
+        return articleRepository.createArticle(authorId, newArticle).slug
     }
 
     private fun createTestComment(
@@ -86,8 +85,8 @@ class CommentServiceTest : DatabaseSpec() {
         val slug = createTestArticle(authorId)
 
         // Create multiple comments
-        val comment1 = createTestComment(slug, authorId, "Comment 1")
-        val comment2 = createTestComment(slug, authorId, "Comment 2")
+        val _ = createTestComment(slug, authorId, "Comment 1")
+        val _ = createTestComment(slug, authorId, "Comment 2")
 
         val comments = commentRepository.getComments(slug, authorId)
 

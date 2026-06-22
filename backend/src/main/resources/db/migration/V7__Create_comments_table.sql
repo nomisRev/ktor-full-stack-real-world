@@ -6,3 +6,6 @@ CREATE TABLE comments (
     created_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
 );
+
+CREATE INDEX IF NOT EXISTS idx_comments_article_id ON comments (article_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author_id ON comments (author_id);

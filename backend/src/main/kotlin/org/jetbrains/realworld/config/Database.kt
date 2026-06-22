@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationEnvironment
 import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.log
 import io.ktor.server.config.getAs
 import kotlinx.serialization.Serializable
 import org.flywaydb.core.Flyway
@@ -59,6 +60,7 @@ fun dataSource(config: DatabaseConfig): HikariDataSource =
         addDataSourceProperty("prepStmtCacheSqlLimit", config.prepStmtCacheSqlLimit.toString())
     })
 
+@IgnorableReturnValue
 fun migrate(dataSource: HikariDataSource, config: DatabaseConfig.Migrations): MigrateResult =
     Flyway.configure()
         .dataSource(dataSource)

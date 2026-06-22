@@ -1,5 +1,6 @@
 package org.jetbrains.realworld.profile
 
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -98,12 +99,20 @@ class ProfileRoutesTest {
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
+    suspend fun HttpClient.followUser(username: String, token: String): Profile {
+        val request = post("/api/profiles/$username/follow") {
+            contentType(ContentType.Application.Json)
+            tokenAuth(token)
+        }
+        return request.body<ProfileResponse>().profile
+    }
+
     @Test
     fun testUnfollowUser() = withApp {
         val follower = createUser(newTestUser())
         val followed = createUser(newTestUser())
 
-        followUser(followed.username, follower.token!!)
+        val _ = followUser(followed.username, follower.token!!)
 
         val response = delete("/api/profiles/${followed.username}/follow") {
             contentType(ContentType.Application.Json)

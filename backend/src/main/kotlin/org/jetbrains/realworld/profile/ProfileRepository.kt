@@ -27,7 +27,8 @@ class ProfileRepository(private val database: Database) {
             if (currentUserId != null) {
                 Follows.select(Follows.followerId, Follows.followedId)
                     .where { (Follows.followerId eq currentUserId) and (Follows.followedId eq userId) }
-                    .count() > 0
+                    .limit(1)
+                    .singleOrNull() != null
             } else false
         }
 
