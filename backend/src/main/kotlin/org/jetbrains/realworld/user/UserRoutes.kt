@@ -16,10 +16,13 @@ fun Route.userRoutes(userService: UserService) {
     post<UsersResource> {
         val request = call.receive<NewUserRequest>()
 
-        val user = userService.registerUser(request.user)
-
-        if (user != null) call.respond(HttpStatusCode.Created, UserResponse(user))
-        else call.respond(HttpStatusCode.UnprocessableEntity, GenericErrorModel("email is already registered"))
+        when (val result = userService.registerUser(request.user)) {
+            is UserService.RegistrationResult.Success -> call.respond(HttpStatusCode.Created, UserResponse(result.user))
+            is UserService.RegistrationResult.Conflict -> call.respond(
+                HttpStatusCode.UnprocessableEntity,
+                GenericErrorModel(result.message)
+            )
+        }
     }
 
     post<UsersResource.Login> {
@@ -29,11 +32,7 @@ fun Route.userRoutes(userService: UserService) {
 
         when (result) {
             is UserService.LoginResult.Success -> call.respond(HttpStatusCode.OK, UserResponse(result.user))
-            is UserService.LoginResult.UserNotFound -> call.respond(
-                HttpStatusCode.UnprocessableEntity,
-                GenericErrorModel("email or password is invalid")
-            )
-
+            is UserService.LoginResult.UserNotFound,
             is UserService.LoginResult.InvalidCredentials -> call.respond(
                 HttpStatusCode.UnprocessableEntity,
                 GenericErrorModel("email or password is invalid")
@@ -51,11 +50,17 @@ fun Route.userRoutes(userService: UserService) {
             val principal = call.principal<UserJWT>()!!
             val request = call.receive<UserUpdateRequest>()
 
-            // TODO: incorrect update which results in conflict. email or username.
-            val user = userService.updateUserOrNull(principal.userId, request.user)
-
-            if (user != null) call.respond(HttpStatusCode.OK, UserResponse(user))
-            else call.respond(HttpStatusCode.NotFound, mapOf("errors" to mapOf("user" to listOf("not found"))))
+            when (val result = userService.updateUser(principal.userId, request.user)) {
+                is UserService.UpdateResult.Success -> call.respond(HttpStatusCode.OK, UserResponse(result.user))
+                UserService.UpdateResult.NotFound -> call.respond(
+                    HttpStatusCode.NotFound,
+                    mapOf("errors" to mapOf("user" to listOf("not found")))
+                )
+                is UserService.UpdateResult.Conflict -> call.respond(
+                    HttpStatusCode.UnprocessableEntity,
+                    GenericErrorModel(result.message)
+                )
+            }
         }
     }
 }

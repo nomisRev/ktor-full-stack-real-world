@@ -3,6 +3,7 @@ package org.jetbrains.realworld.user
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
+import org.jetbrains.realworld.error.GenericErrorModel
 import org.jetbrains.realworld.withApp
 import kotlin.test.*
 import kotlin.uuid.ExperimentalUuidApi
@@ -81,6 +82,36 @@ class UserRoutesTest {
         assertEquals(updated.username, update.username)
         assertEquals(updated.email, update.email)
         assertEquals(updated.bio, update.bio)
+    }
+
+    @Test
+    fun testUpdateUserEmailConflict() = withApp {
+        val user = createUser(newTestUser())
+        val existing = createUser(newTestUser())
+
+        val response = put("/api/user") {
+            contentType(ContentType.Application.Json)
+            header("Authorization", "Token ${user.token!!}")
+            setBody(UserUpdateRequest(UserUpdate(email = existing.email)))
+        }
+
+        assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        assertEquals("email is already registered", response.body<GenericErrorModel>().message())
+    }
+
+    @Test
+    fun testUpdateUserUsernameConflict() = withApp {
+        val user = createUser(newTestUser())
+        val existing = createUser(newTestUser())
+
+        val response = put("/api/user") {
+            contentType(ContentType.Application.Json)
+            header("Authorization", "Token ${user.token!!}")
+            setBody(UserUpdateRequest(UserUpdate(username = existing.username)))
+        }
+
+        assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        assertEquals("username is already registered", response.body<GenericErrorModel>().message())
     }
 
     @Test

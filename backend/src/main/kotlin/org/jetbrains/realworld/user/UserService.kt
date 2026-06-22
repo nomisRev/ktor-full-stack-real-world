@@ -18,6 +18,7 @@ import org.jetbrains.realworld.config.JwtConfig
 import org.jetbrains.realworld.user.UserService.LoginResult.InvalidCredentials
 import org.jetbrains.realworld.user.UserService.LoginResult.Success
 import org.jetbrains.realworld.user.UserService.LoginResult.UserNotFound
+import org.postgresql.util.PSQLException
 import org.postgresql.util.PSQLState
 import java.util.Date
 import kotlin.time.Clock
@@ -39,26 +40,41 @@ class UserService(
     private val database: Database,
     private val hasher: Argon2Hasher
 ) {
-    suspend fun registerUser(registration: NewUser): User? {
+    sealed class RegistrationResult {
+        data class Success(val user: User) : RegistrationResult()
+        data class Conflict(val message: String) : RegistrationResult()
+    }
+
+    sealed class UpdateResult {
+        data class Success(val user: User) : UpdateResult()
+        object NotFound : UpdateResult()
+        data class Conflict(val message: String) : UpdateResult()
+    }
+
+    suspend fun registerUser(registration: NewUser): RegistrationResult {
         val res = hasher.encrypt(registration.password)
         return transaction(database) {
-            val userId = try {
-                Users.insertAndGetId {
+            try {
+                val userId = Users.insertAndGetId {
                     it[email] = registration.email
                     it[username] = registration.username
                     it[password] = res.hash
                     it[salt] = res.salt
                 }.value
+
+                RegistrationResult.Success(
+                    User(
+                        email = registration.email,
+                        username = registration.username,
+                        token = createAndUpdateToken(userId)
+                    )
+                )
             } catch (e: ExposedSQLException) {
-                if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) null
-                else throw e
+                when {
+                    e.sqlState != PSQLState.UNIQUE_VIOLATION.state -> throw e
+                    else -> RegistrationResult.Conflict(uniqueViolationMessage(e) ?: "username or email is already registered")
+                }
             }
-            if (userId == null) null
-            else User(
-                email = registration.email,
-                username = registration.username,
-                token = createAndUpdateToken(userId)
-            )
         }
     }
 
@@ -120,30 +136,37 @@ class UserService(
             ?.toUser()
     }
 
-    suspend fun updateUserOrNull(userId: Long, update: UserUpdate): User? {
+    suspend fun updateUser(userId: Long, update: UserUpdate): UpdateResult {
         val result = update.password?.let { hasher.encrypt(it) }
         val newToken = if (result != null) createToken(userId) else null
         val hasUpdate =
             update.email != null || update.username != null || update.bio != null || update.image != null || update.password != null
 
-        // TODO detect proper errors. Username or email violation.
-        return if (!hasUpdate) getUserOrNull(userId)
-        else transaction(database) {
-            Users.updateReturning(
-                listOf(Users.id, Users.username, Users.email, Users.bio, Users.image, Users.token),
-                { Users.id eq userId }
-            ) { row ->
-                update.email?.let { row[email] = it }
-                update.username?.let { row[username] = it }
-                update.bio?.let { row[bio] = it }
-                update.image?.let { row[image] = it }
-                if (result != null) {
-                    row[salt] = result.salt
-                    row[password] = result.hash
-                    row[token] = newToken
+        return if (!hasUpdate) {
+            getUserOrNull(userId)?.let { UpdateResult.Success(it) } ?: UpdateResult.NotFound
+        } else transaction(database) {
+            try {
+                Users.updateReturning(
+                    listOf(Users.id, Users.username, Users.email, Users.bio, Users.image, Users.token),
+                    { Users.id eq userId }
+                ) { row ->
+                    update.email?.let { row[email] = it }
+                    update.username?.let { row[username] = it }
+                    update.bio?.let { row[bio] = it }
+                    update.image?.let { row[image] = it }
+                    if (result != null) {
+                        row[salt] = result.salt
+                        row[password] = result.hash
+                        row[token] = newToken
+                    }
+                    row[updatedAt] = Clock.System.now()
+                }.singleOrNull()?.toUser()?.let { UpdateResult.Success(it) } ?: UpdateResult.NotFound
+            } catch (e: ExposedSQLException) {
+                when {
+                    e.sqlState != PSQLState.UNIQUE_VIOLATION.state -> throw e
+                    else -> UpdateResult.Conflict(uniqueViolationMessage(e) ?: "username or email is already registered")
                 }
-                row[updatedAt] = Clock.System.now()
-            }.singleOrNull()?.toUser()
+            }
         }
     }
 
@@ -161,6 +184,15 @@ class UserService(
             it[token] = newToken
         }
         return newToken
+    }
+
+    private fun uniqueViolationMessage(e: ExposedSQLException): String? {
+        val constraint = (e.cause as? PSQLException)?.serverErrorMessage?.constraint
+        return when (constraint) {
+            "users_email_key" -> "email is already registered"
+            "users_username_key" -> "username is already registered"
+            else -> throw e
+        }
     }
 
     private fun ResultRow.toUser() = User(
