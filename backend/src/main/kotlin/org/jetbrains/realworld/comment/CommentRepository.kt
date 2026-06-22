@@ -35,29 +35,27 @@ class CommentRepository(private val database: Database) {
         val articleId = Articles
             .select(Articles.id)
             .where { Articles.slug eq slug }
-            .singleOrNull()?.get(Articles.id)?.value
-        if (articleId == null) null
-        else {
-            val rows = Comments
-                .innerJoin(Users) { Comments.authorId eq Users.id }
-                .select(
-                    Comments.id, Comments.body, Comments.createdAt, Comments.updatedAt,
-                    Comments.authorId, Users.id, Users.username, Users.bio, Users.image
-                )
-                .where { Comments.articleId eq articleId }
-                .orderBy(Comments.createdAt, SortOrder.DESC)
-                .toList()
+            .singleOrNull()?.get(Articles.id)?.value ?: return@transaction null
 
-            val authorIds = rows.map { it[Users.id].value }.toSet()
-            val followingAuthorIds = if (currentUserId != null && authorIds.isNotEmpty()) {
-                Follows.select(Follows.followedId)
-                    .where { (Follows.followerId eq currentUserId) and (Follows.followedId inList authorIds) }
-                    .map { it[Follows.followedId].value }
-                    .toSet()
-            } else emptySet()
+        val rows = Comments
+            .innerJoin(Users) { Comments.authorId eq Users.id }
+            .select(
+                Comments.id, Comments.body, Comments.createdAt, Comments.updatedAt,
+                Comments.authorId, Users.id, Users.username, Users.bio, Users.image
+            )
+            .where { Comments.articleId eq articleId }
+            .orderBy(Comments.createdAt, SortOrder.DESC)
+            .toList()
 
-            rows.map<ResultRow, Comment> { row -> row.toComment(currentUserId, followingAuthorIds) }
-        }
+        val authorIds = rows.map { it[Users.id].value }.toSet()
+        val followingAuthorIds = if (currentUserId != null && authorIds.isNotEmpty()) {
+            Follows.select(Follows.followedId)
+                .where { (Follows.followerId eq currentUserId) and (Follows.followedId inList authorIds) }
+                .map { it[Follows.followedId].value }
+                .toSet()
+        } else emptySet()
+
+        rows.map { row -> row.toComment(currentUserId, followingAuthorIds) }
     }
 
     fun createComment(slug: String, authorId: Long, newComment: NewComment): Comment? = transaction(database) {
