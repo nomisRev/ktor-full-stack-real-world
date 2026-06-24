@@ -56,7 +56,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.ui.tooling.preview)
-            implementation(libs.androidx.security.crypto)
+            implementation(libs.androidx.datastore.preferences)
             implementation(ktorLibs.client.android)
         }
         commonMain.dependencies {
