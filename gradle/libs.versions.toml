@@ -28,7 +28,7 @@ androidx-security-crypto = "1.1.0"
 compose-multiplatform = "1.11.1"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
-uiToolingPreview = "1.11.1"
+uiToolingPreview = "1.12.0"
 
 [libraries]
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "componentsResources" }
