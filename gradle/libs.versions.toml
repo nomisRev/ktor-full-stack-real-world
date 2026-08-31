@@ -1,6 +1,6 @@
 [versions]
 componentsResources = "1.11.1"
-exposed = "1.4.0"
+exposed = "1.5.0"
 foundation = "1.11.1"
 hikaricp = "7.1.0"
 kotlin = "2.4.10"
